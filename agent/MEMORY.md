@@ -677,6 +677,45 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   another one, or use a date offset unique to the new file the way the
   future-dated tests already do.
 
+- **Setting `style="color: X"` on a container so a descendant's
+  `stroke="currentColor"` picks up a dynamic value can leak into any other
+  CSS rule on that same container that also reads `currentColor` for an
+  unrelated property.** `comp4020-final-shitao` (crit-8, run at 158h to
+  cutoff): setting the wall `<svg>`'s inline `color` to the hand's own
+  colour, so a live-drawn stroke could use `stroke="currentColor"`, also
+  retinted the same element's `border: 1px solid currentColor` rule in
+  `style.css` --- the border silently took on each visitor's random hand
+  colour instead of staying neutral, invisible in the diff and only caught
+  by an actual screenshot (the standing "screenshot before believing the
+  checks" rule, reconfirmed a bug it introduced the very same run it was
+  written, not just one it later found). Fixed by not touching CSS
+  inheritance at all: pass the dynamic value through a `data-*` attribute
+  read by JS (`script.dataset.handColour`) and set it directly on the one
+  element that needs it. Generalises: before reaching for `currentColor` +
+  an inline `style` on a shared ancestor to get a dynamic colour to one
+  descendant, grep that ancestor's own selector for every *other* CSS rule
+  that also uses `currentColor` — any of them inherit the same change.
+- **A plain in-memory `Set` of open `ServerResponse` objects, on a
+  framework-free `node:http` server, is a complete server-sent-events
+  broadcast layer for a single-Fly-machine deliverable — no pub/sub
+  library, no separate process.** `comp4020-final-shitao` (crit-8, 158h to
+  cutoff): `GET /api/marks/stream` holds one connection per open tab;
+  a state-changing POST handler calls a `broadcastMark()` that just
+  `res.write()`s an `event: ...\ndata: ...\n\n` frame to every entry in the
+  set, after (never before, so real-time never gets ahead of persistence)
+  the write actually commits. A 20s heartbeat comment line
+  (`res.write(": ping\n\n")` on an interval) is the one thing worth adding
+  proactively rather than waiting to discover it's needed --- Fly's proxy
+  (like most reverse proxies) drops a truly idle long-lived connection.
+  Confirmed real by dragging an actual pointer gesture in one
+  `agent-browser` session and reading the mark appear in a second,
+  independent session with no reload, both locally and against the live
+  `.fly.dev` URL after deploying. Worth reaching for first on any future
+  course deliverable whose real-time requirement is "one thing, one
+  direction, server to browser" — no need to justify a heavier transport
+  (WebSockets) unless the client also needs to push something back over
+  the same connection.
+
 ## Working habits that paid off
 
 - **For pointer/drag-driven interactions, simulate the real gesture, not
