@@ -1,73 +1,79 @@
 # now
 
-**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 158h to cutoff at start,
-second run of this crit's window (proof of life already shipped at 164h).**
-Job was plan/build/deepen, not finish --- crit-8's own spec was already fully
-met; this run deepened toward the final project's real-time requirement
-ahead of crit-9 explicitly asking for it, since 158h remained and nothing in
-doctrine says to wait for a future crit's own prompt before building toward
-where the deliverable is headed.
+**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 147h to cutoff at start,
+third run of this crit's window.** Job was plan/build/deepen, not finish ---
+crit-8's own bar and the real-time layer were both already done and deployed
+(prior run, 158h to cutoff). Read the prior hand-off's "next action" (a
+judgement call about several hands drawing at once) but before touching that,
+reread the full source fresh rather than trusting it was otherwise clean, per
+the standing "content-complete... isn't sufficient evidence" habit extended to
+backend logic, not just rendering.
 
 ## What this run did
 
-Reread `README.md`/`CLAUDE.md`/`PROCESS.md` and the full source (82--126
-lines each across `db.ts`/`identity.ts`/`pages.ts`/`server.ts`/`wall.js`) to
-take real stock rather than trust the prior hand-off's characterisation.
-Fetched the final-project brief itself (not just the crit-8 brief) to confirm
-what "real-time" means there: "a change one person makes appears in every
-other open session... within about a second, with no reload."
+Found a real bug reading `server.ts`'s POST handler cold: `hasMarkedToday`
+ran *before* `await readBody(req)`, with `addMark` after --- a genuine
+check-then-insert gap with a real yield point in between, unlike the several
+past-repo races in `MEMORY.md` that turned out safe because nothing separated
+check and insert at all. This is exactly the invariant `CLAUDE.md` calls out
+by name: "the server must independently refuse a second `POST /api/marks`
+from the same hand within the same UTC day even if the client is a bare
+`curl`."
 
-Built that: `GET /api/marks/stream` (plain SSE over `node:http`, no
-framework/library) holds one `ServerResponse` per open tab in an in-memory
-`Set`; every successful `POST /api/marks` broadcasts the new mark to all of
-them right after `addMark` persists it (never before --- `CLAUDE.md` now says
-so explicitly). A 20s heartbeat comment line keeps Fly's proxy from dropping
-an idle connection. `wall.js` now keeps its stream open regardless of
-`canDraw`, so a hand that already marked today still watches the wall live;
-it tells its own gesture apart from the echo by matching path strings, not
-by asking the server to suppress it (so a second tab for the *same* hand
-still sees its own mark land). Added
-`spec/wall.test.ts`'s `"broadcasts a new mark ... within a second"` test
-(reads the SSE stream with a raw `fetch`+`ReadableStream` reader, no
-`EventSource` needed in vitest's node environment) --- 8/8 green.
+Spent real effort establishing whether it was *actually* reachable before
+fixing anything, since the shape looked plausible but past runs have learned
+not to trust that alone:
+- Two curl processes, same cookie, fired with `&`/`wait`: no race (1 of 2
+  always won cleanly).
+- 30 rounds of two concurrent Node `fetch` calls per fresh hand: no race.
+- 10 rounds of 10 concurrent `fetch` calls per fresh hand: still exactly one
+  201 every time.
+- Raw pre-connected `net.Socket`s, both requests' bytes written back-to-back
+  with zero `await` between the two `.write()` calls (40 rounds), even with
+  a body large enough (~35KB, near `PATH_RE`'s 2000-segment cap) to force
+  multiple TCP reads: still 0/60 combined.
 
-Caught and fixed a real regression before committing, the standard way (a
-screenshot, not just green checks): the first attempt set `style="color:
-${handColour}"` directly on `<svg id="wall">` so the live-drawn stroke's
-`stroke="currentColor"` would pick up the hand's own colour --- but
-`style.css`'s `#wall { border: 1px solid currentColor; }` inherited the same
-property, tinting the *border* to the hand's colour too, a side effect
-invisible in the diff and only caught by an actual screenshot. Fixed by
-passing the colour through a `data-hand-colour` attribute on the script tag
-instead of leaning on CSS inheritance, so only the one JS-drawn path element
-gets it.
+All of those came back clean because Node fully drains one connection's
+microtask chain (the whole rest of the async handler, since there's only one
+`await` and the body is already fully buffered by the time it's read) before
+the event loop's poll phase moves on to the next socket's data --- ordinary
+concurrent requests don't actually interleave inside this handler shape, even
+genuinely simultaneous ones. The real reproduction needed a client that holds
+one request's body open past the other's full completion: send request A's
+headers only, wait, send request B's *complete* request (headers+body) and
+let it finish (checks false, inserts, 201), *then* release A's already-parsed
+headers' body --- A's check ran before B inserted, so it also passes and
+inserts. 10/10 hits with this shape
+(`race5.mjs`, not committed --- scratch verification only). This is not a
+contrived attack: a slow network, a deliberately slow client, or Fly's proxy
+buffering behaviour could all produce exactly this shape for a real stranger.
 
-Verified end-to-end before and after deploying: local scratch server (fresh
-`DB_PATH`), two independent `agent-browser` sessions (`--session live-a`/
-`live-b` equivalents), dragged a real gesture in one and confirmed the mark
-appeared in the other with no reload, no duplicate render in the drawing
-tab itself, both consoles clean, both marking viewports (1920x1080, 390x844)
-and `/readme/` all render correctly. `flyctl status` showed the live machine
-still pinned at the *first* deploy's image version (three commits and 6+
-hours behind local `main`) --- redeployed
-(`flyctl deploy --remote-only --ha=false -a comp4020-final-shitao`) per the
-standing "deploying isn't gated the same way pushing is" note, then repeated
-the identical two-session live-browser check against the real
-`https://comp4020-final-shitao.fly.dev/` URL, not just the local build.
+Fixed by moving the `hasMarkedToday` check to immediately before `addMark`,
+with no `await` between them --- matching the actually-safe pattern (nothing
+can interleave two fully-synchronous statements on `node:sqlite`'s
+`DatabaseSync` in a single-threaded process). Re-ran the slow-body exploit
+against the fixed server: 0/10. Re-ran the plain concurrency tests too:
+still 0/60, now for the right reason. Added a deterministic regression test
+to `spec/wall.test.ts` using the same slow-body-then-fast-body technique
+(not a timing-dependent "hope they race" test, which the four clean-looking
+trials above prove wouldn't reliably catch this) --- 9/9 tests green,
+typecheck clean. Real-browser pass after (fresh scratch server, both pages,
+a real dragged gesture, console clean at both) to make sure a backend-only
+change hadn't broken anything rendering-side, per the standing habit.
 
-Committed locally (`f080752`) --- **not pushed**, correctly gated to the
-finishing run (158h remained).
+Committed (`7a89c68`) and, since deploying isn't gated the way pushing is,
+redeployed immediately (`flyctl deploy --remote-only --ha=false`) --- this is
+a real correctness/security fix affecting the live app, not something to sit
+on until a finishing run. Confirmed the live URL responds 200 with the right
+title after deploy. Did not push (correctly gated to the finishing run).
 
 ## Next action
 
-Crit-8's own bar and the real-time layer are both done and deployed. What's
-genuinely still open, per README's own "still to come" line: a decision
-about what happens with several hands drawing *at the same moment* ---
-whether the one-mark-a-day pace still holds once marks arrive live, and
-what a stranger's very first visit should show if marks land mid-visit.
-That's a judgement call to make deliberately, not a mechanical feature to
-add reflexively --- worth thinking through before touching code, the same
-way the original README's "what I chose not to build" section argued for
-each existing constraint. `PROCESS.md` and `reflections/crit-8.md` are
-correctly still untouched; those, plus the push, belong to whichever run
-the next prompt calls "last" for this crit.
+The concurrent-hands judgement call the prior hand-off flagged (what several
+hands drawing at once should look like, whether a stranger's first visit
+should show marks landing mid-visit) is still genuinely open and still a
+judgement call, not a mechanical bug --- worth picking up deliberately next,
+now that the mechanical enforcement underneath it is actually sound.
+`PROCESS.md` and `reflections/crit-8.md` are still correctly untouched;
+those, plus the push, belong to whichever run the next prompt calls "last"
+for this crit/deliverable.

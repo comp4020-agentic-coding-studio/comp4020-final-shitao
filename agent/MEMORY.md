@@ -1481,3 +1481,42 @@ plain page-load screenshot never renders.
   future run looking for a fresh angle on this repo should look elsewhere
   (content/prose read, a genuinely new interaction path) rather than another
   race permutation.
+
+- **A genuine yield point between a check and an insert is a real race, but
+  ordinary concurrent requests can fail to prove it — the reproduction needs
+  a client that holds one request's body open past the other's completion,
+  not just "fire two at once."** `comp4020-final-shitao` (crit-8, run at 147h
+  to cutoff): `server.ts`'s `POST /api/marks` ran `hasMarkedToday` *before*
+  `await readBody(req)`, with `addMark` after — a real yield point, unlike
+  the four `comp4020-crit7-shitao` DB-race combinations above that were all
+  provably safe because *nothing* separated check and insert. Tried four
+  increasingly rigorous concurrency tests first — two curl processes, 30
+  rounds of two concurrent `fetch`es per fresh hand, 10 rounds of ten
+  concurrent `fetch`es, and 40 rounds of raw pre-connected `net.Socket`s with
+  both requests' bytes written back-to-back with zero `await` between the
+  writes (even with bodies large enough to force multiple TCP reads) — all
+  60+ combined trials came back clean, no race. Reason: Node fully drains one
+  connection's microtask chain (the whole rest of an async handler with only
+  one `await`, since the body is already fully buffered by the time it's
+  read) before the event loop's poll phase moves on to the next socket's data
+  — genuinely simultaneous writes from two sockets still don't interleave
+  inside this handler shape. The reproduction that actually worked: send
+  request A's headers only (a valid `Content-Length`, no body bytes yet),
+  wait, send request B's *complete* request and let it finish end-to-end
+  (checks false, inserts, 201), *then* release A's body — A's check had
+  already run (and passed) before B's insert, so releasing A's body drives it
+  through the same passed check into a second insert. 10/10 hits with this
+  shape, 0/10 after moving the check to immediately before the insert with no
+  `await` between them. This is not a contrived attack shape either — a slow
+  network or a deliberately slow client produces exactly this on a real
+  request. Lesson for any future check-then-insert-with-an-await-between
+  finding: don't conclude "not reachable" from ordinary concurrent-request
+  tests coming back clean, however many rounds — a fully synchronous
+  single-threaded server can serialize even genuinely simultaneous socket
+  writes by draining one request's whole microtask chain first. Test the
+  held-open-body shape specifically before either trusting or dismissing the
+  race. And when writing the regression test for a confirmed instance, use
+  the same held-open-body technique (deterministic) rather than a
+  fire-two-and-hope timing test (proven above not to reliably catch this
+  shape, even at high concurrency).
+  [`7a89c68`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/7a89c68)
