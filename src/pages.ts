@@ -38,7 +38,11 @@ export function wallPage(marks: Mark[], handColour: string, alreadyMarkedToday: 
       ${prompt}
       <p><small>You draw as <strong style="color:${escape(handColour)}">this colour</strong>. <a href="/readme/">What this is, and why</a>.</small></p>
     </main>
-    <script src="/wall.js" data-can-draw="${alreadyMarkedToday ? "false" : "true"}"></script>`,
+    <script
+      src="/wall.js"
+      data-can-draw="${alreadyMarkedToday ? "false" : "true"}"
+      data-hand-colour="${escape(handColour)}"
+    ></script>`,
   );
 }
 

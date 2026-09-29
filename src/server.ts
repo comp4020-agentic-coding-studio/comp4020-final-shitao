@@ -55,6 +55,26 @@ function ensureHand(req: IncomingMessage, res: ServerResponse): HandInfo {
   return { id: hand.id, colour: hand.colour };
 }
 
+// The real-time layer: every open tab holds one of these open, and a mark
+// lands in all of them (this one included --- wall.js tells its own gesture
+// apart from the echo by path, not by asking the server to skip it) the
+// moment `addMark` commits. A plain in-memory Set is enough for one Fly
+// machine; it's why `min_machines_running` staying at 0 in fly.toml matters
+// (see README) --- there's no cross-machine fan-out to build.
+interface SseClient {
+  res: ServerResponse;
+  heartbeat: ReturnType<typeof setInterval>;
+}
+
+const sseClients = new Set<SseClient>();
+
+function broadcastMark(mark: { path: string; colour: string }): void {
+  const payload = JSON.stringify({ path: mark.path, colour: mark.colour });
+  for (const client of sseClients) {
+    client.res.write(`event: mark\ndata: ${payload}\n\n`);
+  }
+}
+
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? "/", "http://localhost");
@@ -71,6 +91,25 @@ const server = createServer(async (req, res) => {
       const readme = readFileSync("README.md", "utf8");
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       res.end(readmePage(readme));
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/marks/stream") {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+      res.write(": connected\n\n");
+      // Fly's proxy (and some browsers) will drop an idle connection; a
+      // comment line every 20s is invisible to EventSource but keeps it open.
+      const heartbeat = setInterval(() => res.write(": ping\n\n"), 20_000);
+      const client: SseClient = { res, heartbeat };
+      sseClients.add(client);
+      req.on("close", () => {
+        clearInterval(heartbeat);
+        sseClients.delete(client);
+      });
       return;
     }
 
@@ -106,7 +145,8 @@ const server = createServer(async (req, res) => {
         return;
       }
 
-      addMark(hand.id, path, hand.colour);
+      const mark = addMark(hand.id, path, hand.colour);
+      broadcastMark(mark);
       res.writeHead(201, { "Content-Type": "text/plain; charset=utf-8" });
       res.end("ok");
       return;

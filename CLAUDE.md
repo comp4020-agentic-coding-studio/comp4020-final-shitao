@@ -22,6 +22,11 @@ honest to that, not just the README:
 - **Persistence lives at `DB_PATH` (default `/data/trace.db`, matching
   `fly.toml`'s volume).** Never write app state anywhere else, and never
   assume `/data` is empty --- a redeploy reuses the volume.
+- **A mark broadcasts over `/api/marks/stream` the moment it's persisted,
+  never before.** `src/server.ts`'s `broadcastMark` runs after `addMark`
+  returns, not instead of it --- a hand's mark has to survive a restart
+  before any open tab is told about it, so real-time is layered on top of
+  persistence, not a substitute for it.
 - **When a check catches a real mistake, fix the check or the harness too**,
   not just the code once, so the same mistake can't silently ship again.
 

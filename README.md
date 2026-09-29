@@ -43,14 +43,30 @@ upstream, in what a mark is even allowed to be.
 `spec/` checks the claims that are actually mechanical: a first-time visitor
 gets a hand (a cookie, minted once); a mark they draw shows up on the wall
 and is still there on a completely fresh request; a hand can't draw a second
-mark before a day has passed; the page ships no third-party script or
+mark before a day has passed; a mark broadcasts over `/api/marks/stream`
+within a second of landing; the page ships no third-party script or
 tracking request. Whether the wall is actually *good to look at* once more
 than one hand has drawn on it, whether one mark a day is the right pace, and
 whether "no login, ever" survives contact with people who want their marks
 back on a new phone --- those are judgement calls, not tests, and the crit is
 where I find out if they were the right ones.
 
-This is the first version, proof of life: one hand, one mark, one wall. The
-brief's next two crits ask for real-time (so a second hand watching sees the
-first hand's mark land) and for a decision about what happens with several
-hands drawing at once; both are still to come.
+## What's real-time, and why
+
+A mark now appears in every open tab within a second of landing, no reload:
+`GET /api/marks/stream` is a same-origin
+[server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+stream, and `public/wall.js` opens one on every visit. SSE over WebSockets
+because the wall only ever pushes one thing, a finished mark, one direction,
+server to browser --- there's nothing a client needs to send back over the
+same connection, so a plain long-lived HTTP response is the smaller, plainer
+mechanism for the job. One in-memory list of open connections on the one Fly
+machine is enough: `fly.toml` pins this app to a single machine with one
+volume, so there's no second process an event could fail to reach.
+
+This is still proof of life plus one layer, not the finished app: one hand,
+one mark a day, now watchable live. What happens when several hands are
+drawing at the same moment --- whether the one-mark-a-day pace still holds,
+whether a stranger's *first* visit should show marks arriving mid-visit or
+only from before they arrived --- is a decision still to come, in the crit
+after this one.

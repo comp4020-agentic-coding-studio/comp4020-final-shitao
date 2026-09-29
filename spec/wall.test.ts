@@ -66,6 +66,58 @@ it("rejects a mark that isn't a plain stroke path", async () => {
   expect(res.status).toBe(400);
 });
 
+it("broadcasts a new mark over /api/marks/stream within a second", async () => {
+  const controller = new AbortController();
+  const stream = await fetch(new URL("/api/marks/stream", baseUrl), {
+    signal: controller.signal,
+  });
+  expect(stream.headers.get("content-type")).toMatch(/text\/event-stream/);
+
+  const reader = stream.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffered = "";
+
+  const nextMarkEvent = (): Promise<{ path: string; colour: string }> =>
+    (async () => {
+      for (;;) {
+        const boundary = buffered.indexOf("\n\n");
+        if (boundary !== -1) {
+          const chunk = buffered.slice(0, boundary);
+          buffered = buffered.slice(boundary + 2);
+          if (chunk.startsWith("event: mark")) {
+            const line = chunk.split("\n").find((l) => l.startsWith("data: "))!;
+            return JSON.parse(line.slice("data: ".length));
+          }
+          continue;
+        }
+        const { value, done } = await reader.read();
+        if (done) throw new Error("stream closed before a mark event arrived");
+        buffered += decoder.decode(value, { stream: true });
+      }
+    })();
+
+  const first = await fetch(new URL("/", baseUrl));
+  const cookie = cookieFrom(first);
+  const path = "M11,12 L13,14";
+
+  const [event] = await Promise.all([
+    Promise.race([
+      nextMarkEvent(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("no mark event within 3s")), 3000),
+      ),
+    ]),
+    fetch(new URL("/api/marks", baseUrl), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ path }),
+    }).then((res) => expect(res.status).toBe(201)),
+  ]);
+
+  expect(event.path).toBe(path);
+  controller.abort();
+});
+
 it("ships no third-party script or stylesheet", async () => {
   const res = await fetch(new URL("/", baseUrl));
   const dom = new JSDOM(await res.text());
