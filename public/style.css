@@ -1,0 +1,32 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0 auto;
+  max-width: 46rem;
+  padding: 1.5rem;
+  line-height: 1.5;
+}
+
+#wall {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 3;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+#wall path {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+main img {
+  max-width: 100%;
+}
