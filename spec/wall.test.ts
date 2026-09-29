@@ -1,5 +1,6 @@
 import { JSDOM } from "jsdom";
 import { expect, inject, it } from "vitest";
+import net from "node:net";
 
 // Trace's own promises, from README.md's "what's enforced" list: a
 // first-time visitor gets a hand, a mark they draw shows up and survives a
@@ -52,6 +53,54 @@ it("refuses a second mark from the same hand on the same day", async () => {
 
   expect((await post("M1,1 L2,2")).status).toBe(201);
   expect((await post("M9,9 L8,8")).status).toBe(429);
+});
+
+it("refuses a same-day double mark even when one request's body is slow to arrive", async () => {
+  // A plain sequential double-POST (above) can't catch a check-then-insert
+  // race: the server has to actually be mid-way through one request's body
+  // when the other's completes. Held-open connection A proves the window is
+  // closed by deliberately finishing B first while A's body is still en
+  // route --- the shape a slow network or a second tab genuinely produces.
+  const first = await fetch(new URL("/", baseUrl));
+  const cookie = cookieFrom(first);
+  const { hostname, port } = new URL(baseUrl);
+
+  const connect = (): Promise<net.Socket> =>
+    new Promise((resolve, reject) => {
+      const sock = net.connect(Number(port), hostname, () => resolve(sock));
+      sock.on("error", reject);
+    });
+
+  const readStatus = (sock: net.Socket): Promise<string> =>
+    new Promise((resolve) => {
+      let data = "";
+      sock.on("data", (chunk: Buffer) => {
+        data += chunk.toString();
+        if (data.includes("\r\n\r\n")) {
+          resolve(data.split(" ")[1]);
+          sock.destroy();
+        }
+      });
+    });
+
+  const headers = (contentLength: number) =>
+    `POST /api/marks HTTP/1.1\r\nHost: ${hostname}\r\nContent-Type: application/json\r\n` +
+    `Cookie: ${cookie}\r\nContent-Length: ${contentLength}\r\nConnection: close\r\n\r\n`;
+
+  const bodyA = JSON.stringify({ path: "M1,3 L2,4" });
+  const bodyB = JSON.stringify({ path: "M5,6 L7,8" });
+
+  const [sockA, sockB] = await Promise.all([connect(), connect()]);
+  const statusA = readStatus(sockA);
+  const statusB = readStatus(sockB);
+
+  sockA.write(headers(Buffer.byteLength(bodyA)));
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  sockB.write(headers(Buffer.byteLength(bodyB)) + bodyB);
+  expect(await statusB).toBe("201");
+
+  sockA.write(bodyA);
+  expect(await statusA).toBe("429");
 });
 
 it("rejects a mark that isn't a plain stroke path", async () => {

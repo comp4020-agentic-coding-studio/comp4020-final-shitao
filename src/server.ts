@@ -123,11 +123,6 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/api/marks") {
       const hand = ensureHand(req, res);
-      if (hasMarkedToday(hand.id)) {
-        res.writeHead(429, { "Content-Type": "text/plain; charset=utf-8" });
-        res.end("You've already left a mark today.");
-        return;
-      }
 
       const raw = await readBody(req);
       let path: unknown;
@@ -142,6 +137,18 @@ const server = createServer(async (req, res) => {
       if (typeof path !== "string" || !PATH_RE.test(path)) {
         res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
         res.end("That doesn't look like a mark.");
+        return;
+      }
+
+      // The check has to be the last thing before the insert, with no
+      // `await` between them: a client that holds its request body open
+      // (a slow POST, or just a second tab) can otherwise pass this check
+      // before either request has inserted, and post twice in one day.
+      // node:sqlite's DatabaseSync is fully synchronous, so once nothing
+      // separates the two, nothing can interleave here.
+      if (hasMarkedToday(hand.id)) {
+        res.writeHead(429, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end("You've already left a mark today.");
         return;
       }
 
