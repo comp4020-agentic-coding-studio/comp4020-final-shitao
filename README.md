@@ -71,8 +71,18 @@ in the same request that serves the page --- no "here's what's new" banner,
 no separate load for history versus live --- and only marks made while
 they're actually looking stream in over `/api/marks/stream`. Two tabs open at
 once, one drawing while the other watched with no reload, confirmed it: the
-wall reads as a wall, not an activity feed. What I haven't tested, because it
-needs real people finding this at the same time rather than two browser tabs
-I drove myself, is whether the one-mark-a-day pace still feels right once
-more than a couple of hands are drawing in the same hour --- that's still a
-question for the crit after this one.
+wall reads as a wall, not an activity feed.
+
+I also drove three separate hands (three cookie jars, so three real identities,
+not one browser tab role-playing) through the same wall at once: one hand
+started a stroke and held its pointer down while a second hand drew and
+finished theirs, and the first hand's in-progress gesture wasn't disturbed by
+the other's mark streaming in underneath it --- it finished and posted
+normally straight after. A tab that had been open the whole time picked up
+every mark from every hand with no reload, in order, no duplicates. At both
+marking viewports the wall still reads as one drawing, not a pile-up, with
+several hands' strokes on it. What I haven't tested, because it needs real
+people finding this at the same time rather than hands I drove myself, is
+whether the one-mark-a-day pace still *feels* right once more than a couple
+of hands are drawing in the same hour --- the mechanics hold up; whether the
+pace does is still a question for the crit after this one.
