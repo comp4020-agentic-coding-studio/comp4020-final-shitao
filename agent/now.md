@@ -1,79 +1,56 @@
 # now
 
-**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 147h to cutoff at start,
-third run of this crit's window.** Job was plan/build/deepen, not finish ---
-crit-8's own bar and the real-time layer were both already done and deployed
-(prior run, 158h to cutoff). Read the prior hand-off's "next action" (a
-judgement call about several hands drawing at once) but before touching that,
-reread the full source fresh rather than trusting it was otherwise clean, per
-the standing "content-complete... isn't sufficient evidence" habit extended to
-backend logic, not just rendering.
+**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 134h to cutoff at start,
+fourth run of this crit's window.** Job was plan/build/deepen, not finish ---
+proof of life, the real-time layer, and the check-then-insert race fix were
+all already done and deployed (prior run, 147h to cutoff). Picked up that
+run's flagged next action deliberately: the "several hands drawing at once"
+judgement call, now that the mechanical enforcement underneath it is sound.
 
 ## What this run did
 
-Found a real bug reading `server.ts`'s POST handler cold: `hasMarkedToday`
-ran *before* `await readBody(req)`, with `addMark` after --- a genuine
-check-then-insert gap with a real yield point in between, unlike the several
-past-repo races in `MEMORY.md` that turned out safe because nothing separated
-check and insert at all. This is exactly the invariant `CLAUDE.md` calls out
-by name: "the server must independently refuse a second `POST /api/marks`
-from the same hand within the same UTC day even if the client is a bare
-`curl`."
+Ran a genuine multi-hand concurrency playtest against a scratch server (three
+`agent-browser` sessions, each its own cookie jar = its own hand, not one tab
+role-playing three): one hand started a stroke and held its pointer down
+while a second hand drew and posted a complete mark; the first hand's
+in-progress gesture wasn't disturbed by the other's mark streaming in via SSE
+underneath it, and it posted cleanly right after. A tab left open the whole
+time picked up every hand's mark with no reload, no duplicates, in order.
+Screenshotted both marking viewports (1920×1080, 390×844) with several
+hands' strokes on the wall at once --- reads as one drawing, not a pile-up.
+This doesn't resolve the actual judgement call (whether the one-mark-a-day
+*pace* still feels right with several hands in an hour --- that needs real
+people, not driven browser tabs) but it does rule out any mechanical
+interference or dropped-event risk underneath that question, so recorded the
+finding in README rather than leaving the open question exactly as the prior
+run phrased it. Committed (`2d27ed0`), redeployed (deploying isn't gated the
+way pushing is), confirmed the live `/readme/` serves the new paragraph.
+`pnpm check` stayed green throughout (9/9 tests, typecheck clean) --- README
+prose only, no app code touched this run.
 
-Spent real effort establishing whether it was *actually* reachable before
-fixing anything, since the shape looked plausible but past runs have learned
-not to trust that alone:
-- Two curl processes, same cookie, fired with `&`/`wait`: no race (1 of 2
-  always won cleanly).
-- 30 rounds of two concurrent Node `fetch` calls per fresh hand: no race.
-- 10 rounds of 10 concurrent `fetch` calls per fresh hand: still exactly one
-  201 every time.
-- Raw pre-connected `net.Socket`s, both requests' bytes written back-to-back
-  with zero `await` between the two `.write()` calls (40 rounds), even with
-  a body large enough (~35KB, near `PATH_RE`'s 2000-segment cap) to force
-  multiple TCP reads: still 0/60 combined.
-
-All of those came back clean because Node fully drains one connection's
-microtask chain (the whole rest of the async handler, since there's only one
-`await` and the body is already fully buffered by the time it's read) before
-the event loop's poll phase moves on to the next socket's data --- ordinary
-concurrent requests don't actually interleave inside this handler shape, even
-genuinely simultaneous ones. The real reproduction needed a client that holds
-one request's body open past the other's full completion: send request A's
-headers only, wait, send request B's *complete* request (headers+body) and
-let it finish (checks false, inserts, 201), *then* release A's already-parsed
-headers' body --- A's check ran before B inserted, so it also passes and
-inserts. 10/10 hits with this shape
-(`race5.mjs`, not committed --- scratch verification only). This is not a
-contrived attack: a slow network, a deliberately slow client, or Fly's proxy
-buffering behaviour could all produce exactly this shape for a real stranger.
-
-Fixed by moving the `hasMarkedToday` check to immediately before `addMark`,
-with no `await` between them --- matching the actually-safe pattern (nothing
-can interleave two fully-synchronous statements on `node:sqlite`'s
-`DatabaseSync` in a single-threaded process). Re-ran the slow-body exploit
-against the fixed server: 0/10. Re-ran the plain concurrency tests too:
-still 0/60, now for the right reason. Added a deterministic regression test
-to `spec/wall.test.ts` using the same slow-body-then-fast-body technique
-(not a timing-dependent "hope they race" test, which the four clean-looking
-trials above prove wouldn't reliably catch this) --- 9/9 tests green,
-typecheck clean. Real-browser pass after (fresh scratch server, both pages,
-a real dragged gesture, console clean at both) to make sure a backend-only
-change hadn't broken anything rendering-side, per the standing habit.
-
-Committed (`7a89c68`) and, since deploying isn't gated the way pushing is,
-redeployed immediately (`flyctl deploy --remote-only --ha=false`) --- this is
-a real correctness/security fix affecting the live app, not something to sit
-on until a finishing run. Confirmed the live URL responds 200 with the right
-title after deploy. Did not push (correctly gated to the finishing run).
+**Real finding, not app-related:** the previous run's own hand-off commit
+(`235909b`) added a real lesson (marked's README renderer has no smartypants,
+so `---` never becomes an em dash in `/readme/`) directly to the repo's
+`agent/MEMORY.md` instead of here. The harness's own tick-snapshot commit ten
+seconds later (`95e841c`) reverted exactly that addition, because `agent/` is
+harness-synced *from* this directory, one-way, not the other way around. The
+finding was gone from durable memory until I noticed the commit message
+promised something the repo's memory no longer contained, diffed the two
+commits to confirm the mechanism, and re-added it here (see MEMORY.md's new
+entries). Lesson recorded for real this time: **always write hand-offs and
+lessons to `shitao/memory/{now.md,MEMORY.md}`, never to `<repo>/agent/*.md`.**
 
 ## Next action
 
-The concurrent-hands judgement call the prior hand-off flagged (what several
-hands drawing at once should look like, whether a stranger's first visit
-should show marks landing mid-visit) is still genuinely open and still a
-judgement call, not a mechanical bug --- worth picking up deliberately next,
-now that the mechanical enforcement underneath it is actually sound.
-`PROCESS.md` and `reflections/crit-8.md` are still correctly untouched;
-those, plus the push, belong to whichever run the next prompt calls "last"
-for this crit/deliverable.
+The one-mark-a-day pace-under-load judgement call is still genuinely open
+and still needs real people, not another browser-driven test --- it's a crit
+question, not a build task. Otherwise this deliverable is in good shape:
+proof-of-life bar met, real-time layer solid, the one real race closed and
+regression-tested, README's "what good means" and its open questions both
+current. Worth a normal-cadence pass next run: reread README fresh (does
+anything else need resolving or updating), reread `src/` cold once more per
+the standing "content-complete isn't sufficient evidence" habit (last full
+cold read was run 4, found the race), and check `flyctl status` is still
+current. `PROCESS.md` and `reflections/crit-8.md` are still correctly
+untouched --- those, plus the push, belong to whichever run the next prompt
+calls "last" for this crit/deliverable, not before.

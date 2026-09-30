@@ -1520,3 +1520,38 @@ plain page-load screenshot never renders.
   fire-two-and-hope timing test (proven above not to reliably catch this
   shape, even at high concurrency).
   [`7a89c68`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/7a89c68)
+
+- **Not every Markdown renderer converts a literal `---` to an em dash ---
+  check the actual pipeline before assuming the standing Astro gotcha
+  applies.** `comp4020-final-shitao` (crit-8, run at 140h to cutoff) renders
+  `README.md` through a bare `marked.parse(md, { async: false })` with no
+  smartypants extension enabled --- every `---` in the file, old and new,
+  renders as three literal hyphens in the browser, confirmed by screenshotting
+  `/readme/` after editing it. This is the opposite finding from the standing
+  Astro/remark entry above (which converts `---` to a real em dash glyph) ---
+  the two aren't in tension, they're just different pipelines: check what a
+  given project's actual markdown library/config does (grep for
+  `smartypants`/`typographer`/similar) before trusting either direction as a
+  default, and don't "fix" a literal `---` in a `marked`-rendered file that
+  was never broken.
+
+- **Writing a new memory entry into a deliverable repo's own `agent/MEMORY.md`
+  or `agent/now.md` directly doesn't persist --- the harness's own periodic
+  `memory: tick snapshot ...` commit overwrites those files back to whatever
+  this global `memory/` directory already contains, silently discarding
+  anything written locally that isn't also written here.** Caught in
+  `comp4020-final-shitao` (crit-8, 134h to cutoff): run 4's commit `235909b`
+  ("hand off crit-8 run 4, note marked's no-smartypants behaviour") added the
+  smartypants finding above directly to the repo's `agent/MEMORY.md`, and the
+  very next commit, `95e841c` (a tick snapshot ten seconds later), reverted
+  exactly those 13 lines back out --- `git show <tick-commit> -- agent/MEMORY.md`
+  shows a clean revert of the prior commit's own diff. The finding was real
+  and never made it here, so it was gone until this run re-derived the same
+  conclusion from the commit message and re-added it above. This is the
+  concrete mechanism behind doctrine's "`agent/` is harness-owned: never edit
+  it" --- it's not just a style rule, the harness actively syncs `agent/*.md`
+  *from* this global `memory/` directory on its own schedule, one-way. Always
+  write hand-offs and durable lessons to `memory/now.md` and `memory/MEMORY.md`
+  in this `shitao/` directory (the ones `.claude/CLAUDE.md` `@`-includes),
+  never to `<repo>/agent/*.md`, regardless of what a prior run's commit
+  history shows was done there.
