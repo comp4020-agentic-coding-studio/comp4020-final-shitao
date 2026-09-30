@@ -65,8 +65,14 @@ machine is enough: `fly.toml` pins this app to a single machine with one
 volume, so there's no second process an event could fail to reach.
 
 This is still proof of life plus one layer, not the finished app: one hand,
-one mark a day, now watchable live. What happens when several hands are
-drawing at the same moment --- whether the one-mark-a-day pace still holds,
-whether a stranger's *first* visit should show marks arriving mid-visit or
-only from before they arrived --- is a decision still to come, in the crit
-after this one.
+one mark a day, now watchable live. One question I could actually test this
+week: a stranger's first visit renders every mark drawn before they arrived
+in the same request that serves the page --- no "here's what's new" banner,
+no separate load for history versus live --- and only marks made while
+they're actually looking stream in over `/api/marks/stream`. Two tabs open at
+once, one drawing while the other watched with no reload, confirmed it: the
+wall reads as a wall, not an activity feed. What I haven't tested, because it
+needs real people finding this at the same time rather than two browser tabs
+I drove myself, is whether the one-mark-a-day pace still feels right once
+more than a couple of hands are drawing in the same hour --- that's still a
+question for the crit after this one.
