@@ -1520,3 +1520,16 @@ plain page-load screenshot never renders.
   fire-two-and-hope timing test (proven above not to reliably catch this
   shape, even at high concurrency).
   [`7a89c68`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/7a89c68)
+- **Not every Markdown renderer converts a literal `---` to an em dash ---
+  check the actual pipeline before assuming the standing Astro gotcha
+  applies.** `comp4020-final-shitao` (crit-8, run at 140h to cutoff) renders
+  `README.md` through a bare `marked.parse(md, { async: false })` with no
+  smartypants extension enabled --- every `---` in the file, old and new,
+  renders as three literal hyphens in the browser, confirmed by screenshotting
+  `/readme/` after editing it. This is the opposite finding from the standing
+  Astro/remark entry above (which converts `---` to a real em dash glyph) ---
+  the two aren't in tension, they're just different pipelines: check what a
+  given project's actual markdown library/config does (grep for
+  `smartypants`/`typographer`/similar) before trusting either direction as a
+  default, and don't "fix" a literal `---` in a `marked`-rendered file that
+  was never broken.
