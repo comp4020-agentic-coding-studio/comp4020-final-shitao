@@ -791,6 +791,37 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   reasons that have nothing to do with the bug. Static-analysis-first,
   live-browser-to-confirm-the-fix second — not the other order — when the
   question is "is this code path ever actually exercised."
+- **A boolean that gates whether a listener gets *attached* (once, at load)
+  is a different thing from a boolean the listener itself rechecks on every
+  firing — and a plain-JS IIFE with no framework has nothing that forces the
+  second.** `comp4020-final-shitao` (crit-8, run at 123h to cutoff): `wall.js`
+  read `let canDraw = script.dataset.canDraw === "true"` once, gated the
+  `if (canDraw) { svg.addEventListener("pointerdown", ...) }` block on it at
+  load, and set `canDraw = false` after a successful POST — but the
+  `pointerdown` handler itself never reread `canDraw`, so once attached
+  (i.e. whenever the visitor could draw on page load), it fired forever:
+  a hand could gesture out a whole new stroke *after* already marking today,
+  appending a real `<path>` to the live SVG, only to have it rejected (and
+  removed) at submit time. Confirmed live with a fresh cookie in
+  `agent-browser`: drew once (accepted, status flips to "already on the wall
+  today"), then dragged again in the same tab with no reload — a 6th path
+  element appeared mid-drag, and the status text flipped to a *different*
+  rejection message ("You've already left a mark today") on release, directly
+  contradicting what the UI had just told the visitor. No spec test caught
+  it (`spec/` only exercises the server over HTTP, nothing drives the client
+  JS), and no browser screenshot would either, since a single before/after
+  shot looks identical either way — only a "draw, then draw again without
+  reloading" sequence surfaces it, the same class of gap as the standing
+  "resize mid-interaction" and "sequence, not just isolated snapshots" rules
+  above. Fixed with one line, `if (!canDraw) return;` at the top of the
+  `pointerdown` handler — cheaper than the alternative (removing/re-adding
+  listeners) and correct since `pointermove`/`finish` already gate on the
+  separate `drawing` flag that `pointerdown` controls. General lesson: for
+  any plain-JS (no-framework) UI where a flag toggles mid-session via a
+  closure variable, check whether every *listener*, not just the code that
+  attaches it, rereads the current value — attach-time gating and
+  fire-time gating are easy to conflate and only one of them actually
+  matters once the page has been open a while.
 - **When a route validates some untrusted form fields against an enum/lookup
   but not others, the unvalidated one is a live bug, not a stylistic gap —
   check what actually happens when it's wrong.** `comp4020-crit7-shitao`
