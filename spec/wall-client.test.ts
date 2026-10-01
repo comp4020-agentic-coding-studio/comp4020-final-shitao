@@ -11,7 +11,13 @@ import { expect, it } from "vitest";
 // stubbed since there's no server here.
 const wallSource = readFileSync("public/wall.js", "utf8");
 
-function buildWall({ canDraw }: { canDraw: boolean }) {
+function buildWall({
+  canDraw,
+  deferFetch = false,
+}: {
+  canDraw: boolean;
+  deferFetch?: boolean;
+}) {
   const dom = new JSDOM(
     `<!doctype html><body>
       <svg id="wall" viewBox="0 0 100 100"></svg>
@@ -29,14 +35,28 @@ function buildWall({ canDraw }: { canDraw: boolean }) {
     ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect;
   (svg as unknown as { setPointerCapture: (id: number) => void }).setPointerCapture = () => {};
 
-  const posted: string[] = [];
+  const posted: { path: string; nonce: string }[] = [];
+  // deferFetch lets a test fire the SSE echo for a post while its own fetch
+  // promise is still pending --- the exact ordering server.ts's comment
+  // warns is possible (broadcast is written to the wire before the POST
+  // response is), and the shape that broke the old path-content echo check.
+  let resolveFetch: (() => void) | undefined;
   (window as unknown as { fetch: typeof fetch }).fetch = (async (_url, init) => {
-    posted.push(JSON.parse((init as RequestInit).body as string).path);
+    posted.push(JSON.parse((init as RequestInit).body as string));
+    if (deferFetch) {
+      await new Promise<void>((resolve) => {
+        resolveFetch = resolve;
+      });
+    }
     return new Response(null, { status: 201 });
   }) as typeof fetch;
-  // wall.js opens one unconditionally on load; there's no server to answer it.
+  // wall.js opens one unconditionally on load; there's no server to answer it,
+  // so tests dispatch "mark" events through this stub directly.
+  let markListener: ((evt: { data: string }) => void) | undefined;
   (window as unknown as { EventSource: unknown }).EventSource = class {
-    addEventListener() {}
+    addEventListener(_type: string, listener: (evt: { data: string }) => void) {
+      markListener = listener;
+    }
   };
 
   const script = window.document.createElement("script");
@@ -56,8 +76,11 @@ function buildWall({ canDraw }: { canDraw: boolean }) {
   };
   // Flush the microtask queue fetch's promise chain runs on.
   const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+  const emitMark = (mark: { path: string; colour: string; nonce?: string }) =>
+    markListener?.({ data: JSON.stringify(mark) });
+  const releaseFetch = () => resolveFetch?.();
 
-  return { svg, posted, stroke, settle };
+  return { svg, posted, stroke, settle, emitMark, releaseFetch };
 }
 
 it("posts one mark for one pointer gesture when a hand can draw", async () => {
@@ -90,5 +113,42 @@ it("refuses a second gesture in the same tab once the first mark has landed", as
   stroke(20, 40);
   await settle();
   expect(posted.length).toBe(1);
+  expect(svg.querySelectorAll("path").length).toBe(1);
+});
+
+it("draws another hand's mark even when its path is byte-identical to this tab's own", async () => {
+  // Regression check: the echo filter used to compare by path string, not by
+  // a per-mark token, so two different hands drawing the same short stroke
+  // (a real possibility --- paths are rounded integer coordinates) would
+  // have one hand's live view silently drop the other's genuine mark.
+  const { svg, posted, stroke, settle, emitMark } = buildWall({ canDraw: true });
+  stroke(1, 9);
+  await settle();
+  expect(posted.length).toBe(1);
+  expect(svg.querySelectorAll("path").length).toBe(1); // this tab's own `live` stroke
+
+  emitMark({ path: posted[0].path, colour: "#abcdef", nonce: "someone-elses-nonce" });
+  expect(svg.querySelectorAll("path").length).toBe(2);
+});
+
+it("doesn't duplicate its own mark when the SSE echo arrives before the post resolves", async () => {
+  // Regression check: server.ts broadcasts before it replies to the POST, so
+  // a tab's own echo can genuinely arrive before its fetch promise settles.
+  // The nonce is recorded synchronously before the fetch is even issued, so
+  // this ordering must not produce a second path for the same gesture.
+  const { svg, posted, stroke, settle, emitMark, releaseFetch } = buildWall({
+    canDraw: true,
+    deferFetch: true,
+  });
+  stroke(1, 9);
+  await settle();
+  expect(posted.length).toBe(1);
+  expect(svg.querySelectorAll("path").length).toBe(1); // the `live` stroke, fetch still pending
+
+  emitMark({ path: posted[0].path, colour: "#123456", nonce: posted[0].nonce });
+  expect(svg.querySelectorAll("path").length).toBe(1); // recognised as its own echo, not drawn again
+
+  releaseFetch();
+  await settle();
   expect(svg.querySelectorAll("path").length).toBe(1);
 });

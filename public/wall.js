@@ -11,10 +11,15 @@
   let points = [];
   let live = null;
   let drawing = false;
-  // The path this tab just posted, so its own echo over SSE draws nothing
-  // twice --- the gesture is already on the wall as `live`. A second open tab
-  // for the *same* hand has no `live` element and still needs the echo.
-  let justPosted = null;
+  // The nonce of the mark this tab just posted, so its own echo over SSE
+  // draws nothing twice --- the gesture is already on the wall as `live`. A
+  // second open tab for the *same* hand has no `live` element and still
+  // needs the echo. Set synchronously before the POST even goes out (not
+  // after it resolves), and compared by this opaque token rather than path
+  // content: two different hands can draw byte-identical short strokes, and
+  // the SSE push for this tab's own mark can genuinely arrive before its own
+  // fetch's promise resolves.
+  let pendingNonce = null;
 
   const toViewBox = (evt) => {
     const rect = svg.getBoundingClientRect();
@@ -58,25 +63,30 @@
         return;
       }
       const path = pathFrom(points);
+      // Chosen and recorded before the fetch is even issued, so the echo
+      // check below is already armed no matter which I/O completes first.
+      const nonce = crypto.randomUUID();
+      pendingNonce = nonce;
       status.textContent = "Adding your mark…";
       try {
         const res = await fetch("/api/marks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path }),
+          body: JSON.stringify({ path, nonce }),
         });
         if (!res.ok) {
           const text = await res.text();
           status.textContent = text || "That mark wasn't accepted.";
           live?.remove();
+          pendingNonce = null;
           return;
         }
-        justPosted = path;
         canDraw = false;
         status.textContent = "Your mark is already on the wall today. Come back tomorrow.";
       } catch {
         status.textContent = "Couldn't reach the wall --- try again.";
         live?.remove();
+        pendingNonce = null;
       }
     };
 
@@ -87,8 +97,8 @@
   const stream = new EventSource("/api/marks/stream");
   stream.addEventListener("mark", (evt) => {
     const mark = JSON.parse(evt.data);
-    if (mark.path === justPosted) {
-      justPosted = null;
+    if (mark.nonce && mark.nonce === pendingNonce) {
+      pendingNonce = null;
       return;
     }
     appendStroke(mark.path, mark.colour);

@@ -68,8 +68,8 @@ interface SseClient {
 
 const sseClients = new Set<SseClient>();
 
-function broadcastMark(mark: { path: string; colour: string }): void {
-  const payload = JSON.stringify({ path: mark.path, colour: mark.colour });
+function broadcastMark(mark: { path: string; colour: string; nonce?: string }): void {
+  const payload = JSON.stringify({ path: mark.path, colour: mark.colour, nonce: mark.nonce });
   for (const client of sseClients) {
     client.res.write(`event: mark\ndata: ${payload}\n\n`);
   }
@@ -126,8 +126,11 @@ const server = createServer(async (req, res) => {
 
       const raw = await readBody(req);
       let path: unknown;
+      let nonce: unknown;
       try {
-        path = (JSON.parse(raw) as { path?: unknown }).path;
+        const body = JSON.parse(raw) as { path?: unknown; nonce?: unknown };
+        path = body.path;
+        nonce = body.nonce;
       } catch {
         res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
         res.end("Malformed request.");
@@ -139,6 +142,13 @@ const server = createServer(async (req, res) => {
         res.end("That doesn't look like a mark.");
         return;
       }
+      // An opaque, client-chosen token so a tab can recognise its own mark
+      // coming back over SSE --- never stored, never rendered, just echoed.
+      // Comparing path *content* instead (the previous approach) breaks the
+      // moment two hands draw the same short stroke, which rounded,
+      // low-point-count coordinates make a real possibility, not a
+      // hypothetical one.
+      const markNonce = typeof nonce === "string" && nonce.length <= 200 ? nonce : undefined;
 
       // The check has to be the last thing before the insert, with no
       // `await` between them: a client that holds its request body open
@@ -153,7 +163,7 @@ const server = createServer(async (req, res) => {
       }
 
       const mark = addMark(hand.id, path, hand.colour);
-      broadcastMark(mark);
+      broadcastMark({ ...mark, nonce: markNonce });
       res.writeHead(201, { "Content-Type": "text/plain; charset=utf-8" });
       res.end("ok");
       return;
