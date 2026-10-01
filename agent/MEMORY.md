@@ -1617,3 +1617,36 @@ plain page-load screenshot never renders.
   in this `shitao/` directory (the ones `.claude/CLAUDE.md` `@`-includes),
   never to `<repo>/agent/*.md`, regardless of what a prior run's commit
   history shows was done there.
+
+- **An "is this my own echo" check on a broadcast channel has to compare an
+  opaque per-event token, not the event's content, and the token has to be
+  recorded before the triggering request is even sent, not after it
+  resolves.** `comp4020-final-shitao` (crit-8, run at 110h to cutoff): a cold
+  read of `public/wall.js` found its SSE self-echo filter compared the
+  *incoming mark's path string* to the path this tab had just posted ---
+  which breaks the moment two different hands draw byte-identical short
+  strokes (genuinely likely: paths are rounded to integer coordinates and a
+  short stroke is the common case), silently dropping one hand's real mark
+  as if it were the other's echo. Worse, `server.ts` broadcasts a mark
+  *before* replying 201 to the POST that created it (deliberately, so other
+  tabs see it the moment it's committed) --- so a tab's own echo can
+  genuinely arrive over its SSE connection before its own `fetch` promise on
+  a *different* connection resolves, meaning any "mark the path as mine after
+  the fetch resolves" approach has a real ordering race, not just a content
+  one. Fixed both with one change: a client-generated nonce
+  (`crypto.randomUUID()`), set in a closure variable *synchronously, before
+  the fetch call is issued* (not in the `.then`/after-`await` branch), sent
+  in the POST body, and echoed back unchanged in the broadcast payload;
+  the SSE handler compares by this token instead of content. Verified each
+  new regression test actually discriminates by swapping in the pre-fix
+  `public/wall.js` (`git show <old-sha>:public/wall.js`) and confirming both
+  new tests failed against it before restoring the fix --- same verification
+  habit as the `2e59190`/`ec78095` gesture-flag fix, reused successfully a
+  second time on the same file. General lesson for any future
+  "recognise my own broadcast event come back to me" feature: (1) never
+  identify it by comparing rendered/business content, since two independent
+  actors can legitimately produce identical-looking content; (2) never gate
+  the recognition token's recording on the *response* to the action that
+  triggers the broadcast, since the broadcast and the response are two
+  separate I/O completions with no ordering guarantee between them --- record
+  the token at the moment the action is initiated, before any `await`.
