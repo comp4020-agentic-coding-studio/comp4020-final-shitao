@@ -11,6 +11,15 @@
   let points = [];
   let live = null;
   let drawing = false;
+  // True from the moment a finished gesture's POST goes out until it
+  // settles. Without this, pointerdown doesn't check anything but canDraw
+  // (which only flips false on *success*), so a hand could start a second
+  // gesture while the first mark's request was still in flight --- both
+  // post, the server's one-mark-a-day check correctly rejects the loser,
+  // but the single pendingNonce below belongs to whichever gesture started
+  // last, orphaning the winner's own nonce and making its own echo draw a
+  // visible duplicate of a stroke already on the wall.
+  let submitting = false;
   // The nonce of the mark this tab just posted, so its own echo over SSE
   // draws nothing twice --- the gesture is already on the wall as `live`. A
   // second open tab for the *same* hand has no `live` element and still
@@ -40,7 +49,7 @@
 
   if (canDraw) {
     svg.addEventListener("pointerdown", (evt) => {
-      if (!canDraw) return;
+      if (!canDraw || submitting) return;
       drawing = true;
       points = [toViewBox(evt)];
       live = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -67,6 +76,7 @@
       // check below is already armed no matter which I/O completes first.
       const nonce = crypto.randomUUID();
       pendingNonce = nonce;
+      submitting = true;
       status.textContent = "Adding your mark…";
       try {
         const res = await fetch("/api/marks", {
@@ -87,6 +97,8 @@
         status.textContent = "Couldn't reach the wall --- try again.";
         live?.remove();
         pendingNonce = null;
+      } finally {
+        submitting = false;
       }
     };
 

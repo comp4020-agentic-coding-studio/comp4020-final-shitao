@@ -131,6 +131,35 @@ it("draws another hand's mark even when its path is byte-identical to this tab's
   expect(svg.querySelectorAll("path").length).toBe(2);
 });
 
+it("refuses a second gesture while the first one's post is still in flight", async () => {
+  // Regression check: pointerdown only ever checked canDraw, which stays
+  // true until the first post *succeeds* --- so a hand could start a second
+  // gesture while the first was still in flight. Both posted; the server's
+  // one-mark-a-day check correctly rejected the loser, but the single
+  // pendingNonce belonged to whichever gesture started last, so the
+  // winner's own nonce was orphaned and its own echo drew a visible
+  // duplicate of a stroke already on the wall.
+  const { svg, posted, stroke, settle, emitMark, releaseFetch } = buildWall({
+    canDraw: true,
+    deferFetch: true,
+  });
+  stroke(1, 9); // gesture 1, fetch pending
+  await settle();
+  expect(posted.length).toBe(1);
+
+  stroke(20, 40); // gesture 2, started before gesture 1's fetch resolved
+  await settle();
+  expect(posted.length).toBe(1); // refused outright, never posted
+  expect(svg.querySelectorAll("path").length).toBe(1); // just gesture 1's own `live` stroke
+
+  emitMark({ path: posted[0].path, colour: "#123456", nonce: posted[0].nonce });
+  expect(svg.querySelectorAll("path").length).toBe(1); // still recognised as its own echo
+
+  releaseFetch();
+  await settle();
+  expect(svg.querySelectorAll("path").length).toBe(1);
+});
+
 it("doesn't duplicate its own mark when the SSE echo arrives before the post resolves", async () => {
   // Regression check: server.ts broadcasts before it replies to the POST, so
   // a tab's own echo can genuinely arrive before its fetch promise settles.
