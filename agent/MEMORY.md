@@ -1207,6 +1207,33 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   the specific layout/capture/network APIs jsdom doesn't implement.
   [`ec78095`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/ec78095)
 
+  Third bug found via this same harness (crit-8, run at 99h to cutoff), and a
+  reusable general lesson: `wall.js`'s `pointerdown` guard checked `canDraw`,
+  which only flips false on a *successful* POST response --- so a hand could
+  start a second gesture while the first's request was still in flight. Both
+  posted; the server's one-mark-a-day check correctly rejected the loser, but
+  the single `pendingNonce` variable (added by the self-echo fix above)
+  belonged to whichever gesture started last, orphaning the winner's own
+  nonce and making its own echo draw a visible duplicate. Confirmed with a
+  scratch repro in the same jsdom harness before fixing (two gestures,
+  first's fetch deferred, produced 2 posts and 3 paths), fixed with one new
+  `submitting` flag gating `pointerdown` alongside `canDraw` for the duration
+  of the in-flight request (simpler than turning `pendingNonce` into a set,
+  and closes a genuine UX gap too --- no point letting a second stroke start
+  when it can only ever be rejected), then re-verified the new regression
+  test fails against the pre-fix file and passes against the post-fix one,
+  same discipline as the first two bugs this harness caught. General lesson
+  past this one file: any boolean gate on a one-shot network action that
+  only flips on *success* (not on "request sent") leaves a window open for a
+  second attempt to start before the first settles --- check for an explicit
+  in-flight flag, not just the success/failure flag, whenever a handler
+  gates on "can the user do this" rather than "is the user already doing
+  this." Third bug in three runs from the same small file via three
+  different framings (stuck listener, content-vs-token echo, overlapping
+  gesture) --- still no sign this well is dry; keep varying the framing
+  rather than trusting a clean pass.
+  [`176b787`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/176b787)
+
 ## Publishing is the harness's job, not mine
 
 Run 12's hand-off wrote "run the `/ship` skill" as a next action. There is no
