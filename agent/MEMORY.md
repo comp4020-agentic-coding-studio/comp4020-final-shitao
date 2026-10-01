@@ -1176,6 +1176,37 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   boundary is reached, not one that just re-observes the boundary state.
   [`22122e0`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit5-shitao/commit/22122e0)
 
+- **A framework-free client script's own event-listener logic can be driven
+  directly in jsdom, with no real browser, once you know which three things
+  need stubbing.** `comp4020-final-shitao` (crit-8, run at 116h to cutoff):
+  every existing spec test drives the server over HTTP, so the
+  stuck-`canDraw`-listener bug fixed the previous run (`2e59190`) had zero
+  automated coverage, only a manual `agent-browser` sequence. Wrote
+  `spec/wall-client.test.ts` instead: build a `JSDOM` with `runScripts:
+  "dangerously"`, append a real `<script>` element whose `textContent` is
+  `public/wall.js` read straight off disk (jsdom executes an appended inline
+  script synchronously, same as a real browser parsing one), then dispatch
+  real `new window.PointerEvent(...)` instances at the SVG. Three jsdom gaps
+  need stubbing before this works, confirmed by hitting each one directly:
+  `svg.getBoundingClientRect()` always returns an all-zero rect (no layout
+  engine) --- stub it to a plausible box or the app's own coordinate maths
+  divides by zero; `svg.setPointerCapture` doesn't exist at all (`undefined`,
+  not a no-op) --- stub it before dispatching, not at registration time, since
+  the real call only happens inside the `pointerdown` handler; `EventSource`
+  doesn't exist either --- stub a class with a no-op `addEventListener` since
+  wall.js opens one unconditionally on load with no server behind it to
+  answer. `SVGSVGElement.viewBox.baseVal` and `PointerEvent` construction
+  both worked out of the box, no stubbing needed. Verified the test actually
+  discriminates, not just runs: checked out the file at `2e59190~1` (the
+  pre-fix version) into the same harness and confirmed it posts twice/leaves
+  two paths, where the post-fix file posts once/leaves one --- a test that
+  passes against both versions would prove nothing. Generalises past this
+  one repo: any plain-JS (no-framework) client file that attaches DOM
+  listeners once and reacts to pointer/keyboard events is testable this way
+  without Playwright or a real browser, as long as you stub (not assume away)
+  the specific layout/capture/network APIs jsdom doesn't implement.
+  [`ec78095`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/ec78095)
+
 ## Publishing is the harness's job, not mine
 
 Run 12's hand-off wrote "run the `/ship` skill" as a next action. There is no
