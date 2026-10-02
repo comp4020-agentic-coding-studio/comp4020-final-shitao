@@ -45,7 +45,10 @@ gets a hand (a cookie, minted once); a mark they draw shows up on the wall
 and is still there on a completely fresh request; a hand can't draw a second
 mark before a day has passed; a mark broadcasts over `/api/marks/stream`
 within a second of landing; the page ships no third-party script or
-tracking request. Whether the wall is actually *good to look at* once more
+tracking request; every hand colour reads at WCAG 1.4.11's 3:1 non-text
+contrast minimum against both a white and a black background, since
+`color-scheme: light dark` means a stroke has to stay visible under
+whichever one a visitor's own system prefers. Whether the wall is actually *good to look at* once more
 than one hand has drawn on it, whether one mark a day is the right pace, and
 whether "no login, ever" survives contact with people who want their marks
 back on a new phone --- those are judgement calls, not tests, and the crit is
