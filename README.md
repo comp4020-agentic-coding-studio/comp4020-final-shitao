@@ -51,6 +51,15 @@ whether "no login, ever" survives contact with people who want their marks
 back on a new phone --- those are judgement calls, not tests, and the crit is
 where I find out if they were the right ones.
 
+A pointer was the only way to draw until this run: nothing about "one hand,
+one mark" should mean one *input device*. Focusing the wall and pressing
+Enter starts a mark at its centre, the arrow keys extend it a step at a
+time, and Enter again hands off to the exact same submit path a pointer
+gesture uses --- same nonce, same one-mark-a-day check, same echo handling.
+`spec/wall-client.test.ts` drives this the same way it already drove the
+pointer path: real `KeyboardEvent`s against the real `public/wall.js`, not a
+description of what it should do.
+
 ## What's real-time, and why
 
 A mark now appears in every open tab within a second of landing, no reload:
