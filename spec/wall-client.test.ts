@@ -74,13 +74,21 @@ function buildWall({
     gesture(to, to, "pointermove");
     gesture(to + 1, to + 1, "pointerup");
   };
+  const key = (k: string) => svg.dispatchEvent(new window.KeyboardEvent("keydown", { key: k }));
+  // Enter, one arrow step, Enter: the keyboard-only path through the exact
+  // same beginGesture/addPoint/finish a pointer gesture drives.
+  const keyboardStroke = () => {
+    key("Enter");
+    key("ArrowRight");
+    key("Enter");
+  };
   // Flush the microtask queue fetch's promise chain runs on.
   const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
   const emitMark = (mark: { path: string; colour: string; nonce?: string }) =>
     markListener?.({ data: JSON.stringify(mark) });
   const releaseFetch = () => resolveFetch?.();
 
-  return { svg, posted, stroke, settle, emitMark, releaseFetch };
+  return { svg, posted, stroke, key, keyboardStroke, settle, emitMark, releaseFetch };
 }
 
 it("posts one mark for one pointer gesture when a hand can draw", async () => {
@@ -92,8 +100,31 @@ it("posts one mark for one pointer gesture when a hand can draw", async () => {
 });
 
 it("never attaches drawing listeners at all when canDraw starts false", async () => {
-  const { svg, posted, stroke, settle } = buildWall({ canDraw: false });
+  const { svg, posted, stroke, keyboardStroke, settle } = buildWall({ canDraw: false });
   stroke(1, 9);
+  keyboardStroke();
+  await settle();
+  expect(posted.length).toBe(0);
+  expect(svg.querySelectorAll("path").length).toBe(0);
+});
+
+it("posts one mark for a keyboard-only gesture: Enter, an arrow step, Enter", async () => {
+  // A pointer is otherwise the only way to draw at all --- a keyboard-only
+  // visitor couldn't use the app's one interaction without this path, which
+  // mirrors pointerdown/pointermove/pointerup through the same
+  // beginGesture/addPoint/finish functions.
+  const { svg, posted, keyboardStroke, settle } = buildWall({ canDraw: true });
+  keyboardStroke();
+  await settle();
+  expect(posted.length).toBe(1);
+  expect(svg.querySelectorAll("path").length).toBe(1);
+});
+
+it("Escape cancels a keyboard gesture in progress without posting anything", async () => {
+  const { svg, posted, key, settle } = buildWall({ canDraw: true });
+  key("Enter");
+  key("ArrowUp");
+  key("Escape");
   await settle();
   expect(posted.length).toBe(0);
   expect(svg.querySelectorAll("path").length).toBe(0);

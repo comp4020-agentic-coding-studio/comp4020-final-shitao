@@ -25,14 +25,18 @@ export function wallPage(marks: Mark[], handColour: string, alreadyMarkedToday: 
 
   const prompt = alreadyMarkedToday
     ? `<p id="status">Your mark is already on the wall today. Come back tomorrow.</p>`
-    : `<p id="status">Draw one mark, then lift your hand (or finger, or pen).</p>`;
+    : `<p id="status">Draw one mark with a pointer, or focus the wall and press Enter: arrow keys draw, Enter again finishes.</p>`;
+
+  const svgAttrs = alreadyMarkedToday
+    ? `role="img" aria-label="The shared drawing, one mark per hand"`
+    : `tabindex="0" role="application" aria-label="The shared drawing, one mark per hand. Press Enter or Space to start your mark, arrow keys to draw it, Enter or Space to finish, Escape to cancel."`;
 
   return layout(
     "Trace",
     `    <main>
       <h1>Trace</h1>
       <p>One wall. One mark each, once a day. Nothing else.</p>
-      <svg id="wall" viewBox="0 0 1000 600" role="img" aria-label="The shared drawing, one mark per hand">
+      <svg id="wall" viewBox="0 0 1000 600" ${svgAttrs}>
       ${strokes}
       </svg>
       ${prompt}

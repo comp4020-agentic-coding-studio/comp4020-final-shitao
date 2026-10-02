@@ -47,21 +47,29 @@
     svg.appendChild(p);
   };
 
+  const beginGesture = (point) => {
+    drawing = true;
+    points = [point];
+    live = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    live.setAttribute("stroke", handColour);
+    svg.appendChild(live);
+  };
+
+  const addPoint = (point) => {
+    points.push(point);
+    live.setAttribute("d", pathFrom(points));
+  };
+
   if (canDraw) {
     svg.addEventListener("pointerdown", (evt) => {
       if (!canDraw || submitting) return;
-      drawing = true;
-      points = [toViewBox(evt)];
-      live = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      live.setAttribute("stroke", handColour);
-      svg.appendChild(live);
+      beginGesture(toViewBox(evt));
       svg.setPointerCapture(evt.pointerId);
     });
 
     svg.addEventListener("pointermove", (evt) => {
       if (!drawing) return;
-      points.push(toViewBox(evt));
-      live.setAttribute("d", pathFrom(points));
+      addPoint(toViewBox(evt));
     });
 
     const finish = async () => {
@@ -104,6 +112,47 @@
 
     svg.addEventListener("pointerup", finish);
     svg.addEventListener("pointercancel", finish);
+
+    // A pointer is the only way to draw unless this exists: Enter/Space
+    // starts a gesture at the wall's centre, the arrow keys add a point each
+    // in that direction (mirroring pointermove), and Enter/Space again hands
+    // off to the same finish() a pointer gesture uses. Escape cancels before
+    // anything is sent, the same way lifting a pointer after barely moving
+    // does (finish() drops any gesture under two points).
+    const STEP = 30;
+    const ARROW_DELTAS = {
+      ArrowUp: [0, -STEP],
+      ArrowDown: [0, STEP],
+      ArrowLeft: [-STEP, 0],
+      ArrowRight: [STEP, 0],
+    };
+    svg.addEventListener("keydown", (evt) => {
+      if (!canDraw || submitting) return;
+      if (!drawing) {
+        if (evt.key !== "Enter" && evt.key !== " ") return;
+        evt.preventDefault();
+        const vb = svg.viewBox.baseVal;
+        beginGesture([Math.round(vb.x + vb.width / 2), Math.round(vb.y + vb.height / 2)]);
+        return;
+      }
+      if (evt.key in ARROW_DELTAS) {
+        evt.preventDefault();
+        const [dx, dy] = ARROW_DELTAS[evt.key];
+        const [x, y] = points[points.length - 1];
+        addPoint([x + dx, y + dy]);
+        return;
+      }
+      if (evt.key === "Enter" || evt.key === " ") {
+        evt.preventDefault();
+        finish();
+        return;
+      }
+      if (evt.key === "Escape") {
+        evt.preventDefault();
+        drawing = false;
+        live?.remove();
+      }
+    });
   }
 
   const stream = new EventSource("/api/marks/stream");
