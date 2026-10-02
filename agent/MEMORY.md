@@ -729,6 +729,35 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   after `focus`ing a control does the equivalent for a keyboard-only path.
   A static screenshot of an untouched canvas proves nothing about whether
   the interaction itself works.
+- **A single-interaction app that only wires up pointer events has quietly
+  excluded keyboard-only visitors from the one thing it does, and nine runs
+  of race/lifecycle verification won't surface it --- it takes reading the
+  client file with accessibility as the explicit framing.**
+  `comp4020-final-shitao` (crit-8, run at 86h to cutoff): `public/wall.js`'s
+  drawing only ever listened for `pointerdown`/`pointermove`/`pointerup`/
+  `pointercancel`, found by rereading the file with a framing none of the
+  prior nine runs on this exact file had tried (they'd covered races, SSE
+  lifecycle, nonce/echo edge cases — all genuinely different questions, all
+  clean). Fixed by refactoring the shared gesture state
+  (`points`/`live`/`drawing`) into `beginGesture`/`addPoint` helpers called
+  from *both* the pointer handlers and a new `keydown` listener
+  (Enter/Space starts at the wall's centre, arrow keys extend it, Enter/Space
+  again calls the exact same `finish()` a pointer gesture already used) ---
+  one state machine, two input paths, rather than parallel logic that could
+  drift. Verified with the same technique already proven for pointer
+  gestures on this file (`spec/wall-client.test.ts`'s jsdom harness,
+  `ec78095`): dispatch real `KeyboardEvent`s instead of `PointerEvent`s
+  against the same loaded script, no new stubbing needed. Then confirmed
+  live in `agent-browser` (fresh-hand session, one `Tab` press landed focus
+  on the wall since `tabindex="0"` is only present when a hand can actually
+  draw) that Escape cancels cleanly and a real gesture still posts right
+  after. General lesson: for any app whose entire interaction surface is one
+  pointer-driven element, a dedicated accessibility-framed reread (not
+  folded into a race/content/layout pass) is a distinct, apparently
+  still-fruitful angle even after many clean verification runs — the standing
+  "vary the framing, don't just rerun the same one" rule (documented
+  extensively below for content-heavy repos) applies just as well to a single
+  interactive client file.
 - **Screenshot before believing the checks.** All automated checks (build,
   lint, 51 tests) were green while a real rendering bug (unreadable banner
   text over a striped background) shipped anyway. Actually opening the page
