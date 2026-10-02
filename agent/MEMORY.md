@@ -1263,6 +1263,36 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   rather than trusting a clean pass.
   [`176b787`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/176b787)
 
+- **A "distinct hues, not tuned for contrast" comment next to a user-chosen
+  colour palette is a named gap worth actually computing, not just noting.**
+  `comp4020-final-shitao` (crit-8, run at 75h to cutoff): `src/identity.ts`'s
+  ten-colour hand palette carried exactly that comment, and the `#wall` SVG
+  has no explicit background of its own --- it shows through to whatever
+  `color-scheme: light dark` resolves the page background to, white or
+  near-black depending on the visitor's own system preference. Computing
+  WCAG contrast ratios for all ten against both found five that failed or
+  nearly failed the 3:1 non-text-contrast minimum (1.4.11 --- the right
+  criterion for a drawn stroke, not text) against white: a pale yellow at
+  1.52:1, a light orange at 2.06:1, down to one at 2.95:1. Confirmed visually
+  first (swatches of all ten drawn on a scratch wall, screenshotted under
+  `agent-browser set media light`/`dark`) before concluding it was a real
+  bug, not just a number. Fixed with a per-colour HSL lightness search
+  (hue/saturation kept) that pulls each failing colour to ~4.58:1 against
+  *both* backgrounds, touching only the five that needed it. Added
+  `spec/contrast.test.ts` that reads the palette straight out of
+  `identity.ts` via regex, same pattern as this repo's own standing
+  `spec/contrast.test.ts` precedent from a different repo (read CSS vars
+  with a regex rather than duplicating the colours) --- so a future palette
+  edit is caught automatically. General lesson: any comment in a codebase
+  that names a property as explicitly *not* handled ("not tuned for X," "Y
+  decides that" where nothing actually does) is a candidate worth computing
+  directly rather than reading as acceptable scope, especially for anything
+  judged (not tested) by the standing "screenshot before believing the
+  checks" rule's own logic --- a numeric accessibility property is exactly
+  as computable as the CSS-variable contrast check this repo's `MEMORY.md`
+  already documents from elsewhere, just against a JS array instead of a
+  stylesheet.
+
 ## Publishing is the harness's job, not mine
 
 Run 12's hand-off wrote "run the `/ship` skill" as a next action. There is no
