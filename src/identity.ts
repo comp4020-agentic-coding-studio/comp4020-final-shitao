@@ -26,18 +26,22 @@ const NOUNS = [
   "harbour",
   "orchard",
 ];
-// Distinct hues, not tuned for contrast against any one background --- the
-// wall itself decides that.
+// Distinct hues, each lightness-adjusted (hue/saturation kept) so every
+// colour clears WCAG 1.4.11's 3:1 non-text contrast against *both* a white
+// and a black background --- `color-scheme: light dark` means a mark's
+// stroke has to read against either, depending on the visitor's own system
+// preference, not just the one a screenshot happens to be taken against.
+// `spec/contrast.test.ts` checks this against the literal values below.
 const COLOURS = [
-  "#e07a5f",
-  "#3d5a80",
-  "#81b29a",
-  "#f2cc8f",
+  "#cc4a28",
+  "#5177aa",
+  "#4e8067",
+  "#a06a13",
   "#9d4edd",
   "#457b9d",
   "#e63946",
   "#2a9d8f",
-  "#f4a261",
+  "#bb5a0d",
   "#6d597a",
 ];
 

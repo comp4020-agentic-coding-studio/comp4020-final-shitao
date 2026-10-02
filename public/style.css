@@ -21,7 +21,10 @@ body {
 }
 
 #wall:focus-visible {
-  outline: 3px solid #3d5a80;
+  /* Matches the tuned #5177aa in identity.ts's COLOURS, not the old
+     #3d5a80 --- the focus ring is itself a UI boundary WCAG 1.4.11 holds
+     to the same 3:1-against-either-background bar as a drawn mark. */
+  outline: 3px solid #5177aa;
   outline-offset: 2px;
 }
 
