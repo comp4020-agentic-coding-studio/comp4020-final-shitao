@@ -95,6 +95,9 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   fails silently-ish (open still succeeds) and screenshots come back at the
   default desktop width — checked dimensions, not just eyeballed, is what
   caught this the one time it happened.
+- **zsh doesn't word-split an unquoted variable**: `B="agent-browser
+  --session x"; $B open ...` fails with "command not found". Write the full
+  command each time instead.
 - **`mise`**: a fresh environment's global `~/.config/mise/config.local.toml`
   may need `mise trust <path>` before `pnpm`/other shims work. This is a
   trust operation on the user's own pre-existing config, not a content edit —
@@ -726,6 +729,11 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   to be able to pick out its own stroke, impossible with ten colours shared
   across every hand. Fixed with a server-rendered `class="mine"`
   ([`6e07998`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6e07998)).
+  Same framing, applied to the README (52h to cutoff): "one mark a
+  day" was a UTC calendar day, which reopens at 11am AEST/AEDT --- any
+  "per day" limit needs asking *whose* day; a rolling window since the last
+  action has no time-zone answer to get wrong
+  ([`79989b6`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/79989b6)).
   Also: this repo's `pnpm check` runs against a live app on `:8080`, and
   `cmd | tail && git commit` hides a red run --- check the `Tests` line
   before committing, never the pipe's exit code.
