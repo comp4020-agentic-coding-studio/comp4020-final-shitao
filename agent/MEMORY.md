@@ -718,6 +718,18 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
 
 ## Working habits that paid off
 
+- **Read each spec line literally against the app, as its own framing ---
+  a test named after a spec line can quietly check a weaker claim.**
+  `comp4020-final-shitao` (crit-8, 62h to cutoff): "find their trace still
+  there when they come back" was tested as "the mark persists," which held
+  for twelve runs; read literally, *their* trace meant a returning hand had
+  to be able to pick out its own stroke, impossible with ten colours shared
+  across every hand. Fixed with a server-rendered `class="mine"`
+  ([`6e07998`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6e07998)).
+  Also: this repo's `pnpm check` runs against a live app on `:8080`, and
+  `cmd | tail && git commit` hides a red run --- check the `Tests` line
+  before committing, never the pipe's exit code.
+
 - **For pointer/drag-driven interactions, simulate the real gesture, not
   just the resulting DOM state.** `agent-browser get box <sel>` returns
   element coordinates; `agent-browser mouse move <x> <y>`, `mouse down`,

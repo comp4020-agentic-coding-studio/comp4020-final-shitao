@@ -1,38 +1,44 @@
 # now
 
-**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 68h to cutoff at start,
-twelfth run of this crit's window.** Plan/build/deepen run, not the last.
+**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 62h to cutoff at start,
+thirteenth run of this crit's window.** Plan/build/deepen run, not the last.
 
 ## What this run did
 
-Took stock: clean tree, `flyctl status` showed version 10 (the contrast fix,
-`de8164a`) live and auto-stopped --- caught up. Live `/`, `/readme/`,
-`/style.css`, `/wall.js` all 200, existing marks still rendered.
+New framing: read each spec line literally against the app. "A stranger can
+... find their trace still there when they come back" was only ever tested
+as "the mark persists" --- but ten colours are shared across all hands, so a
+returning hand couldn't tell which stroke was theirs. Fixed:
 
-Rereading the brief: it explicitly says "`PROCESS.md` says why" the stack was
-chosen, ideally as a decision record --- that's brief content, not just a
-finishing step, so I wrote a first version now
-([`50e0ec3`]): a decision record (context: one 256 MB Fly machine + volume;
-decision: framework-free `node:http` + Node 24 type-stripping + `node:sqlite`
-+ SSE, only runtime dep `marked`; rejected: Astro SSR + `better-sqlite3` from
-crit-7, WebSockets; consequence: concurrency isn't hidden, cited the
-held-open-body race `7a89c68`), then the jsdom client harness story
-(`2e59190`, `ec78095`, `672e486`, `176b787`, `5138836`) and the contrast fix
-(`de8164a`). ~570 words. Docs-only, so no redeploy. Local `main` is ahead of
-origin by the unpushed commits since the last push --- correct under the
-inside-24h push gate.
+- `c6183e5` stale `server.ts` comment (said echo matched by path; named a
+  `min_machines_running` reason that isn't the real one)
+- `6e07998` a hand's own marks render with `class="mine"` (thicker stroke),
+  server-side only, no hand id ever sent to the page; footer says "Your mark
+  is / N marks are the thicker stroke(s)"; live gesture in `wall.js` gets the
+  class too. New `spec/wall.test.ts` test, A/B-checked (fails against old
+  server). Its path is made unique per run because the app under test keeps
+  its DB between runs.
+- `3492268` README paragraph on it, and dropped "until this run" agent-
+  narration from the keyboard paragraph
+- `97c71c2` PROCESS.md paragraph citing `6e07998` (now ~627 words; trim
+  toward 600 on the final run)
 
-`pnpm check:evidence` now fails only on the missing `reflections/crit-8.md`
-(a finishing step).
+Deployed (v11) and verified live: CSS rule, `/readme/` paragraph, and a
+scratch hand's POST came back as `class="mine"` (left one small test mark at
+the wall's top-left). Browser-checked at 390×844 locally, console clean.
+Unpushed local commits are correct under the push gate.
+
+Known small gap, deliberately left: a *second tab of the same hand* draws the
+first tab's mark via SSE echo without `mine` until reload (the broadcast
+carries no hand id, by design).
 
 ## Next action
 
-On whichever run the prompt calls last: write `reflections/crit-8.md` headed
-"It's alive!" (raw JSON `title`, reconfirmed this run), 150--300 words, both
-prompts --- the natural breakthrough is the jsdom harness that made
-`wall.js`'s own logic testable, and the held-open-body race test; reread
-`PROCESS.md` against final state, then `pnpm check` + `check:evidence`,
-push, deploy, verify live. Before then, keep varying cold-read framings of
-`src`/`public` (tried: lifecycle/client-state, self-echo token, overlapping
-gesture, SSE disconnect, keyboard access, colour contrast) and update
-`PROCESS.md` if anything new lands.
+On the run the prompt calls last: write `reflections/crit-8.md` headed
+"It's alive!", 150--300 words, both prompts (breakthrough candidates: the
+jsdom harness for `wall.js`, the held-open-body race test, or reading the
+spec line literally); trim PROCESS.md; `pnpm check` (needs the app running
+on :8080 --- start it with a scratch `DB_PATH`) + `check:evidence`; push;
+deploy; verify live. Before then, untried framings: the README read cold as
+a pod member deciding whether the app lives up to it; the wall at many marks
+(density/legibility).
