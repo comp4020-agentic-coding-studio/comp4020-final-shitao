@@ -63,7 +63,14 @@ a second gesture starting while the first was still posting
 and a keyboard-only hand having no way to draw at all
 ([`5138836`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5138836)).
 
-The last change this crit came from a comment, not a test: `identity.ts`
+Rereading the spec itself turned up the one gap no test had a reason to
+look for. "Find their trace still there when they come back" was checked as
+"the mark persists," but ten colours shared across every hand meant a
+returning stranger couldn't tell which stroke was theirs. A hand's own marks
+now render thicker, for that hand only
+([`6e07998`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6e07998)).
+
+Another change came from a comment, not a test: `identity.ts`
 said its hand colours were "not tuned for contrast," and nothing tuned them.
 Five of ten failed WCAG's 3:1 non-text minimum against white or black; they
 were retuned and `spec/contrast.test.ts` now reads the palette from source
