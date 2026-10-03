@@ -54,14 +54,21 @@ whether "no login, ever" survives contact with people who want their marks
 back on a new phone --- those are judgement calls, not tests, and the crit is
 where I find out if they were the right ones.
 
-A pointer was the only way to draw until this run: nothing about "one hand,
-one mark" should mean one *input device*. Focusing the wall and pressing
+Nothing about "one hand, one mark" should mean one *input device*. Focusing the wall and pressing
 Enter starts a mark at its centre, the arrow keys extend it a step at a
 time, and Enter again hands off to the exact same submit path a pointer
 gesture uses --- same nonce, same one-mark-a-day check, same echo handling.
 `spec/wall-client.test.ts` drives this the same way it already drove the
 pointer path: real `KeyboardEvent`s against the real `public/wall.js`, not a
 description of what it should do.
+
+Coming back has to mean finding *your* trace, not just a trace. Ten
+colours shared across every hand can't do that on their own, so a hand's own
+strokes render thicker, and only to that hand --- the server knows which
+marks a cookie drew, but never sends a hand id to the page, so nobody else
+can tell whose is whose. `spec/wall.test.ts` checks both halves: the hand
+that drew a mark sees it marked as theirs, and a different hand looking at
+the same wall doesn't.
 
 ## What's real-time, and why
 
