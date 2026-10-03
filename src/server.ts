@@ -57,10 +57,10 @@ function ensureHand(req: IncomingMessage, res: ServerResponse): HandInfo {
 
 // The real-time layer: every open tab holds one of these open, and a mark
 // lands in all of them (this one included --- wall.js tells its own gesture
-// apart from the echo by path, not by asking the server to skip it) the
-// moment `addMark` commits. A plain in-memory Set is enough for one Fly
-// machine; it's why `min_machines_running` staying at 0 in fly.toml matters
-// (see README) --- there's no cross-machine fan-out to build.
+// apart from the echo by the nonce it posted, not by asking the server to
+// skip it) the moment `addMark` commits. A plain in-memory Set is enough
+// because fly.toml runs exactly one machine --- there's no cross-machine
+// fan-out to build.
 interface SseClient {
   res: ServerResponse;
   heartbeat: ReturnType<typeof setInterval>;
