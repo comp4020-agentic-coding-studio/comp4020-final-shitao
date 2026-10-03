@@ -83,7 +83,7 @@ const server = createServer(async (req, res) => {
       const hand = ensureHand(req, res);
       const alreadyMarkedToday = hasMarkedToday(hand.id);
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(wallPage(allMarks(), hand.colour, alreadyMarkedToday));
+      res.end(wallPage(allMarks(), hand, alreadyMarkedToday));
       return;
     }
 

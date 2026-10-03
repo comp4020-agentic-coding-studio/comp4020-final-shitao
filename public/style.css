@@ -35,6 +35,10 @@ body {
   stroke-linejoin: round;
 }
 
+#wall path.mine {
+  stroke-width: 7;
+}
+
 main img {
   max-width: 100%;
 }

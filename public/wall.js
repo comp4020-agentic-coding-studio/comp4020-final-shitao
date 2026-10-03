@@ -52,6 +52,7 @@
     points = [point];
     live = document.createElementNS("http://www.w3.org/2000/svg", "path");
     live.setAttribute("stroke", handColour);
+    live.setAttribute("class", "mine");
     svg.appendChild(live);
   };
 

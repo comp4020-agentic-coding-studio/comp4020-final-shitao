@@ -18,10 +18,22 @@ ${body}
 </html>
 `;
 
-export function wallPage(marks: Mark[], handColour: string, alreadyMarkedToday: boolean): string {
+export function wallPage(
+  marks: Mark[],
+  hand: { id: string; colour: string },
+  alreadyMarkedToday: boolean,
+): string {
+  // Ten colours across every hand means colour alone can't tell a returning
+  // hand which strokes are theirs; `mine` is only ever rendered to the hand
+  // that drew it, and never leaves the server as a hand id.
   const strokes = marks
-    .map((m) => `<path d="${escape(m.path)}" stroke="${escape(m.colour)}" />`)
+    .map((m) => {
+      const mine = m.hand_id === hand.id ? ` class="mine"` : "";
+      return `<path d="${escape(m.path)}" stroke="${escape(m.colour)}"${mine} />`;
+    })
     .join("\n      ");
+  const ownCount = marks.filter((m) => m.hand_id === hand.id).length;
+  const handColour = hand.colour;
 
   const prompt = alreadyMarkedToday
     ? `<p id="status">Your mark is already on the wall today. Come back tomorrow.</p>`
@@ -40,7 +52,7 @@ export function wallPage(marks: Mark[], handColour: string, alreadyMarkedToday: 
       ${strokes}
       </svg>
       ${prompt}
-      <p><small>You draw as <strong style="color:${escape(handColour)}">this colour</strong>. <a href="/readme/">What this is, and why</a>.</small></p>
+      <p><small>You draw as <strong style="color:${escape(handColour)}">this colour</strong>.${ownCount > 0 ? ` Your ${ownCount === 1 ? "mark is" : `${ownCount} marks are`} the thicker ${ownCount === 1 ? "stroke" : "strokes"}.` : ""} <a href="/readme/">What this is, and why</a>.</small></p>
     </main>
     <script
       src="/wall.js"

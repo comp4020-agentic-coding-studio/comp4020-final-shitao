@@ -40,6 +40,30 @@ it("a hand's mark appears on the wall and survives a fresh request", async () =>
   expect(html).toContain(path);
 });
 
+it("a returning hand can tell its own mark from everyone else's", async () => {
+  const mine = cookieFrom(await fetch(new URL("/", baseUrl)));
+  const other = cookieFrom(await fetch(new URL("/", baseUrl)));
+
+  // Unique per run: the app under test keeps its database between runs, and
+  // an identical path drawn by an earlier run's hand would match first.
+  const path = `M${Date.now() % 100_000},12 L13,14 L15,16`;
+  const post = await fetch(new URL("/api/marks", baseUrl), {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Cookie: mine },
+    body: JSON.stringify({ path }),
+  });
+  expect(post.status).toBe(201);
+
+  const strokeFor = async (cookie: string) => {
+    const html = await (await fetch(new URL("/", baseUrl), { headers: { Cookie: cookie } })).text();
+    const svg = new JSDOM(html).window.document.getElementById("wall")!;
+    return [...svg.querySelectorAll("path")].find((p) => p.getAttribute("d") === path);
+  };
+
+  expect((await strokeFor(mine))?.classList.contains("mine")).toBe(true);
+  expect((await strokeFor(other))?.classList.contains("mine")).toBe(false);
+});
+
 it("refuses a second mark from the same hand on the same day", async () => {
   const first = await fetch(new URL("/", baseUrl));
   const cookie = cookieFrom(first);
