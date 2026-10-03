@@ -101,7 +101,7 @@
           return;
         }
         canDraw = false;
-        status.textContent = "Your mark is already on the wall today. Come back tomorrow.";
+        status.textContent = "Your mark is on the wall. You can add another in 24 hours.";
       } catch {
         status.textContent = "Couldn't reach the wall --- try again.";
         live?.remove();

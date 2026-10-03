@@ -1,9 +1,9 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFileSync } from "node:fs";
 import { extname, join } from "node:path";
-import { addMark, allMarks, createHand, getHand, hasMarkedToday } from "./db.ts";
+import { addMark, allMarks, createHand, getHand, msUntilNextMark } from "./db.ts";
 import { colourFor, nameFor, newHandId, parseHandCookie, setHandCookie } from "./identity.ts";
-import { readmePage, wallPage } from "./pages.ts";
+import { readmePage, untilPhrase, wallPage } from "./pages.ts";
 
 const PORT = Number(process.env.PORT ?? 8080);
 // Fly's proxy terminates TLS and forwards plain http; FLY_APP_NAME is only
@@ -81,9 +81,8 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "GET" && url.pathname === "/") {
       const hand = ensureHand(req, res);
-      const alreadyMarkedToday = hasMarkedToday(hand.id);
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(wallPage(allMarks(), hand, alreadyMarkedToday));
+      res.end(wallPage(allMarks(), hand, msUntilNextMark(hand.id)));
       return;
     }
 
@@ -156,9 +155,10 @@ const server = createServer(async (req, res) => {
       // before either request has inserted, and post twice in one day.
       // node:sqlite's DatabaseSync is fully synchronous, so once nothing
       // separates the two, nothing can interleave here.
-      if (hasMarkedToday(hand.id)) {
+      const wait = msUntilNextMark(hand.id);
+      if (wait > 0) {
         res.writeHead(429, { "Content-Type": "text/plain; charset=utf-8" });
-        res.end("You've already left a mark today.");
+        res.end(`Your mark is already on the wall. You can add another ${untilPhrase(wait)}.`);
         return;
       }
 

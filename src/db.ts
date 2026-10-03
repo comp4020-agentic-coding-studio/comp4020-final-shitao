@@ -45,9 +45,7 @@ const insertMarkStmt = db.prepare(
   "INSERT INTO marks (hand_id, path, colour, created_at) VALUES (?, ?, ?, ?)",
 );
 const allMarksStmt = db.prepare("SELECT * FROM marks ORDER BY created_at ASC");
-const marksTodayStmt = db.prepare(
-  "SELECT COUNT(*) as n FROM marks WHERE hand_id = ? AND created_at >= ?",
-);
+const latestMarkStmt = db.prepare("SELECT MAX(created_at) as t FROM marks WHERE hand_id = ?");
 
 export function getHand(id: string): Hand | undefined {
   return getHandStmt.get(id) as unknown as Hand | undefined;
@@ -63,20 +61,18 @@ export function allMarks(): Mark[] {
   return allMarksStmt.all() as unknown as Mark[];
 }
 
-// "A day" is the UTC calendar day, so the one-mark limit doesn't depend on
-// where a hand happens to be.
-function startOfUtcDay(now: number): number {
-  const d = new Date(now);
-  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+// "A day" is the 24 hours since a hand's last mark, not a calendar day: any
+// calendar boundary (UTC midnight is 11am in Canberra) lets a hand mark twice
+// in an hour across it, or refuses one that comes back "tomorrow" in its own
+// time zone.
+export const MARK_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+export function msUntilNextMark(handId: string, now = Date.now()): number {
+  const row = latestMarkStmt.get(handId) as unknown as { t: number | null };
+  return row.t === null ? 0 : Math.max(0, row.t + MARK_INTERVAL_MS - now);
 }
 
-export function hasMarkedToday(handId: string, now = Date.now()): boolean {
-  const row = marksTodayStmt.get(handId, startOfUtcDay(now)) as unknown as { n: number };
-  return row.n > 0;
-}
-
-export function addMark(handId: string, path: string, colour: string): Mark {
-  const created_at = Date.now();
+export function addMark(handId: string, path: string, colour: string, created_at = Date.now()): Mark {
   const result = insertMarkStmt.run(handId, path, colour, created_at);
   return { id: Number(result.lastInsertRowid), hand_id: handId, path, colour, created_at };
 }

@@ -18,11 +18,19 @@ ${body}
 </html>
 `;
 
+// Hours, not a clock time: the server doesn't know a hand's time zone, and a
+// duration reads the same in every one.
+export function untilPhrase(ms: number): string {
+  const hours = Math.ceil(ms / 3_600_000);
+  return ms <= 3_600_000 ? "within the hour" : `in about ${hours} hours`;
+}
+
 export function wallPage(
   marks: Mark[],
   hand: { id: string; colour: string },
-  alreadyMarkedToday: boolean,
+  msUntilNextMark: number,
 ): string {
+  const alreadyMarked = msUntilNextMark > 0;
   // Ten colours across every hand means colour alone can't tell a returning
   // hand which strokes are theirs; `mine` is only ever rendered to the hand
   // that drew it, and never leaves the server as a hand id.
@@ -35,11 +43,11 @@ export function wallPage(
   const ownCount = marks.filter((m) => m.hand_id === hand.id).length;
   const handColour = hand.colour;
 
-  const prompt = alreadyMarkedToday
-    ? `<p id="status">Your mark is already on the wall today. Come back tomorrow.</p>`
+  const prompt = alreadyMarked
+    ? `<p id="status">Your mark is already on the wall. You can add another ${untilPhrase(msUntilNextMark)}.</p>`
     : `<p id="status">Draw one mark with a pointer, or focus the wall and press Enter: arrow keys draw, Enter again finishes.</p>`;
 
-  const svgAttrs = alreadyMarkedToday
+  const svgAttrs = alreadyMarked
     ? `role="img" aria-label="The shared drawing, one mark per hand"`
     : `tabindex="0" role="application" aria-label="The shared drawing, one mark per hand. Press Enter or Space to start your mark, arrow keys to draw it, Enter or Space to finish, Escape to cancel."`;
 
@@ -56,7 +64,7 @@ export function wallPage(
     </main>
     <script
       src="/wall.js"
-      data-can-draw="${alreadyMarkedToday ? "false" : "true"}"
+      data-can-draw="${alreadyMarked ? "false" : "true"}"
       data-hand-colour="${escape(handColour)}"
     ></script>`,
   );
