@@ -14,7 +14,8 @@ honest to that, not just the README:
 - **The one-mark-a-day limit is enforced in `src/db.ts`, not the client.**
   The drawing UI can hide the button after a mark lands, but the server must
   independently refuse a second `POST /api/marks` from the same hand within
-  the same UTC day even if the client is a bare `curl`.
+  24 hours of its last mark (a rolling window, never a calendar day) even if
+  the client is a bare `curl`.
 - **No third-party requests.** No analytics, no CDN-hosted fonts or scripts,
   no embeds. Every `<script>` and `<link>` the server sends is same-origin.
   `spec/wall.test.ts` checks this; don't add an exception without updating

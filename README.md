@@ -43,7 +43,9 @@ upstream, in what a mark is even allowed to be.
 `spec/` checks the claims that are actually mechanical: a first-time visitor
 gets a hand (a cookie, minted once); a mark they draw shows up on the wall
 and is still there on a completely fresh request; a hand can't draw a second
-mark before a day has passed; a mark broadcasts over `/api/marks/stream`
+mark until 24 hours after its last, measured from the mark rather than
+from midnight, since UTC midnight lands at 11am in Canberra and any
+calendar day would be somebody's mid-afternoon; a mark broadcasts over `/api/marks/stream`
 within a second of landing; the page ships no third-party script or
 tracking request; every hand colour reads at WCAG 1.4.11's 3:1 non-text
 contrast minimum against both a white and a black background, since
