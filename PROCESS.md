@@ -68,7 +68,10 @@ look for. "Find their trace still there when they come back" was checked as
 "the mark persists," but ten colours shared across every hand meant a
 returning stranger couldn't tell which stroke was theirs. A hand's own marks
 now render thicker, for that hand only
-([`6e07998`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6e07998)).
+([`6e07998`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6e07998)). Reading the README the same way caught "one mark a day" meaning a UTC
+day, which reopens at 11am in Canberra; it is now 24 hours since a hand's
+last mark
+([`79989b6`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/79989b6)).
 
 Another change came from a comment, not a test: `identity.ts`
 said its hand colours were "not tuned for contrast," and nothing tuned them.
