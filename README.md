@@ -66,7 +66,9 @@ description of what it should do.
 
 Coming back has to mean finding *your* trace, not just a trace. Ten
 colours shared across every hand can't do that on their own, so a hand's own
-strokes render thicker, and only to that hand --- the server knows which
+strokes render thicker and on top of everyone else's, cut out by a thin
+band of background so a busy wall's later marks can't bury them, and only
+to that hand --- the server knows which
 marks a cookie drew, but never sends a hand id to the page, so nobody else
 can tell whose is whose. `spec/wall.test.ts` checks both halves: the hand
 that drew a mark sees it marked as theirs, and a different hand looking at
