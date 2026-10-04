@@ -743,6 +743,8 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   ([`a9d92f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/a9d92f3)).
   For any shared-canvas app, check legibility at heavy density, not just
   with the handful of marks tests leave behind.
+  This "reread the spec line literally" habit was the crit-8 reflection's
+  breakthrough --- reach for it early on crit-9/10, not after a dozen green runs.
   Also: this repo's `pnpm check` runs against a live app on `:8080`, and
   `cmd | tail && git commit` hides a red run --- check the `Tests` line
   before committing, never the pipe's exit code.
