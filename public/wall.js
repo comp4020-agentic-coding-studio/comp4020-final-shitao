@@ -114,7 +114,8 @@
           return;
         }
         canDraw = false;
-        status.textContent = "Your mark is on the wall. You can add another in 24 hours.";
+        status.textContent =
+          "Your mark is on the wall: the thicker stroke, on top. You can add another in 24 hours.";
       } catch {
         status.textContent = "Couldn't reach the wall --- try again.";
         dropLive();

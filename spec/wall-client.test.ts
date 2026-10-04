@@ -27,6 +27,7 @@ function buildWall({
   );
   const { window } = dom;
   const svg = window.document.getElementById("wall") as unknown as SVGSVGElement;
+  const status = window.document.getElementById("status")!;
 
   // jsdom has no layout engine (getBoundingClientRect is always zero) and no
   // pointer-capture implementation; stub both so wall.js's own coordinate
@@ -88,7 +89,7 @@ function buildWall({
     markListener?.({ data: JSON.stringify(mark) });
   const releaseFetch = () => resolveFetch?.();
 
-  return { svg, posted, stroke, key, keyboardStroke, settle, emitMark, releaseFetch };
+  return { svg, status, posted, stroke, key, keyboardStroke, settle, emitMark, releaseFetch };
 }
 
 it("posts one mark for one pointer gesture when a hand can draw", async () => {
@@ -97,6 +98,16 @@ it("posts one mark for one pointer gesture when a hand can draw", async () => {
   await settle();
   expect(posted.length).toBe(1);
   expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
+});
+
+it("tells a hand which stroke is theirs the moment its first mark lands", async () => {
+  // The page footer only names "the thicker stroke" once a reload finds this
+  // hand's marks on the server; without this, a first-time hand's only cue
+  // is a line that vanishes into a busy wall.
+  const { status, stroke, settle } = buildWall({ canDraw: true });
+  stroke(1, 9);
+  await settle();
+  expect(status.textContent).toContain("the thicker stroke");
 });
 
 it("never attaches drawing listeners at all when canDraw starts false", async () => {
