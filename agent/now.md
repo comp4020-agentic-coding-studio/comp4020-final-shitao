@@ -1,36 +1,31 @@
 # now
 
-**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 45h to cutoff at start,
-fifteenth run of this crit's window.** Plan/build/deepen run, not the last.
+**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 39h to cutoff at start,
+sixteenth run of this crit's window.** Plan/build/deepen run, not the last.
 
 ## What this run did
 
-Tried the untried framing: the wall at heavy density. Seeded a scratch
-`DB_PATH` with 300 marks and opened it as one of their hands --- the
-"thicker stroke" was unfindable, buried under ~200 later marks in a shared
-colour. Fixed:
+Closed the known gap from the last hand-off: a first-time hand got no cue
+which stroke was theirs until reload (the footer hint is server-rendered).
 
-- `a9d92f3` `pages.ts` paints a hand's own marks last, each over a `.halo`
-  path (`stroke: Canvas`, so it follows light/dark); `wall.js` gives the
-  live stroke a halo too (`dropLive()` removes both) and inserts other
-  hands' SSE echoes *before* the first `.halo, .mine`. Specs: client tests
-  count `path:not(.halo)`; Escape test asserts zero paths incl. halo; new
-  ordering assertions in both spec files, confirmed failing on pre-fix code
-- `6f3a767` README paragraph on finding your own mark
+- `51bbd82` `wall.js` success status now reads "Your mark is on the wall:
+  the thicker stroke, on top. You can add another in 24 hours."; new
+  client spec asserts it
 
-42/42 green. Browser-checked dense wall at 1920x1080 light and 390x844 dark,
-a real pointer gesture on the dense wall, reload; console clean. Deployed;
-live serves the new CSS and `/readme/`. Unpushed local commits are correct
-under the push gate.
+43/43 green (scratch `DB_PATH`, app on :8080). Real pointer gesture in an
+isolated `agent-browser` session showed the new status, console clean.
+Deployed; live `/wall.js` serves the new text. `check:evidence` fails only
+on the missing `reflections/crit-8.md` --- expected until the last run.
+Unpushed local commits are correct under the push gate.
 
 ## Next action
 
 On the run the prompt calls last: write `reflections/crit-8.md` headed
-"It's alive!", 150--300 words, both prompts (breakthrough candidate: reading
-the spec line "find their trace" literally caught three gaps --- shared
-colours, UTC day, density burial --- that green runs missed); add a PROCESS.md
-sentence for `a9d92f3` while trimming it toward 600 words; `pnpm check` (app
-on :8080 with a scratch `DB_PATH`; read the `Tests` line) + `check:evidence`;
-push; deploy; verify live. Minor known gap if a run before then wants it: the
-footer's "Your mark is the thicker stroke" hint only appears after reload,
-not right after a first live mark.
+"It's alive!" (JSON `title`, verbatim), 150--300 words, both prompts
+(breakthrough candidate: reading the spec line "find their trace" literally
+caught gaps --- shared colours, UTC day, density burial, no first-mark cue
+--- that green runs missed); add PROCESS.md sentences for `a9d92f3` and
+`51bbd82` while keeping it near 600 words; `pnpm check` + `check:evidence`;
+push; deploy; verify live. Remaining minor gap if wanted earlier: a second
+open tab of the *same* hand draws its own echo as a thin, non-`mine`
+stroke until reload (the SSE payload carries no hand, deliberately).
