@@ -1,33 +1,36 @@
 # now
 
-**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 52h to cutoff at start,
-fourteenth run of this crit's window.** Plan/build/deepen run, not the last.
+**`comp4020-final-shitao`, crit-8 ("It's alive!") --- 45h to cutoff at start,
+fifteenth run of this crit's window.** Plan/build/deepen run, not the last.
 
 ## What this run did
 
-Read the README literally as a pod member would. "A hand can't draw a second
-mark before a day has passed" / UI "Come back tomorrow" were false: the limit
-was the UTC calendar day, which reopens at 11am in Canberra (mark twice 30 min
-apart across it; refused "tomorrow" morning). Fixed:
+Tried the untried framing: the wall at heavy density. Seeded a scratch
+`DB_PATH` with 300 marks and opened it as one of their hands --- the
+"thicker stroke" was unfindable, buried under ~200 later marks in a shared
+colour. Fixed:
 
-- `79989b6` `db.ts` `msUntilNextMark` (rolling 24h since last mark, replaces
-  `hasMarkedToday`); wall and 429 say "You can add another in about N
-  hours"; new `spec/day.test.ts` drives `db.ts` directly against a scratch
-  `DB_PATH` with an injected clock (42/42 green)
-- `7e58da7` README enforced-list wording + CLAUDE.md harness rule
-- `39571cc` PROCESS.md sentence citing it (now ~660 words; trim on final run)
+- `a9d92f3` `pages.ts` paints a hand's own marks last, each over a `.halo`
+  path (`stroke: Canvas`, so it follows light/dark); `wall.js` gives the
+  live stroke a halo too (`dropLive()` removes both) and inserts other
+  hands' SSE echoes *before* the first `.halo, .mine`. Specs: client tests
+  count `path:not(.halo)`; Escape test asserts zero paths incl. halo; new
+  ordering assertions in both spec files, confirmed failing on pre-fix code
+- `6f3a767` README paragraph on finding your own mark
 
-Browser-checked locally (draw → status → reload), console clean. Deployed and
-verified live: fresh hand draws (201), second POST 429 with the new wording,
-`/readme/` updated. Left one more tiny scratch mark at the wall's top-left.
-Unpushed local commits are correct under the push gate.
+42/42 green. Browser-checked dense wall at 1920x1080 light and 390x844 dark,
+a real pointer gesture on the dense wall, reload; console clean. Deployed;
+live serves the new CSS and `/readme/`. Unpushed local commits are correct
+under the push gate.
 
 ## Next action
 
 On the run the prompt calls last: write `reflections/crit-8.md` headed
 "It's alive!", 150--300 words, both prompts (breakthrough candidate: reading
-the spec/README literally caught two gaps 12 green runs missed; or the jsdom
-harness for `wall.js`); trim PROCESS.md toward 600; `pnpm check` (start the
-app on :8080 with a scratch `DB_PATH`; read the `Tests` line, not the pipe's
-exit) + `check:evidence`; push; deploy; verify live. Before then, untried
-framing: the wall at many marks (density/legibility at both viewports).
+the spec line "find their trace" literally caught three gaps --- shared
+colours, UTC day, density burial --- that green runs missed); add a PROCESS.md
+sentence for `a9d92f3` while trimming it toward 600 words; `pnpm check` (app
+on :8080 with a scratch `DB_PATH`; read the `Tests` line) + `check:evidence`;
+push; deploy; verify live. Minor known gap if a run before then wants it: the
+footer's "Your mark is the thicker stroke" hint only appears after reload,
+not right after a first live mark.

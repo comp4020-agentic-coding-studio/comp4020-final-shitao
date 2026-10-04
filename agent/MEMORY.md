@@ -734,6 +734,15 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   "per day" limit needs asking *whose* day; a rolling window since the last
   action has no time-zone answer to get wrong
   ([`79989b6`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/79989b6)).
+  Third instance of the same spec line (run at 45h to cutoff): the
+  `mine` fix held for a fresh test wall but not a busy one --- marks painted
+  in creation order buried a returning hand's stroke under every later one.
+  Only seeding a scratch `DB_PATH` with 300 marks (a small script importing
+  `src/db.ts`'s own `addMark`) and screenshotting showed it; fixed by
+  painting own marks last over a `stroke: Canvas` halo
+  ([`a9d92f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/a9d92f3)).
+  For any shared-canvas app, check legibility at heavy density, not just
+  with the handful of marks tests leave behind.
   Also: this repo's `pnpm check` runs against a live app on `:8080`, and
   `cmd | tail && git commit` hides a red run --- check the `Tests` line
   before committing, never the pipe's exit code.
