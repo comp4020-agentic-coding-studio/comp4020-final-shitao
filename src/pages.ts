@@ -33,14 +33,20 @@ export function wallPage(
   const alreadyMarked = msUntilNextMark > 0;
   // Ten colours across every hand means colour alone can't tell a returning
   // hand which strokes are theirs; `mine` is only ever rendered to the hand
-  // that drew it, and never leaves the server as a hand id.
-  const strokes = marks
-    .map((m) => {
-      const mine = m.hand_id === hand.id ? ` class="mine"` : "";
-      return `<path d="${escape(m.path)}" stroke="${escape(m.colour)}"${mine} />`;
-    })
-    .join("\n      ");
-  const ownCount = marks.filter((m) => m.hand_id === hand.id).length;
+  // that drew it, and never leaves the server as a hand id. A hand's own
+  // strokes are painted last, each over a background-coloured halo, so a
+  // busy wall's later marks can't bury them.
+  const own = marks.filter((m) => m.hand_id === hand.id);
+  const strokes = [
+    ...marks
+      .filter((m) => m.hand_id !== hand.id)
+      .map((m) => `<path d="${escape(m.path)}" stroke="${escape(m.colour)}" />`),
+    ...own.flatMap((m) => [
+      `<path d="${escape(m.path)}" class="halo" />`,
+      `<path d="${escape(m.path)}" stroke="${escape(m.colour)}" class="mine" />`,
+    ]),
+  ].join("\n      ");
+  const ownCount = own.length;
   const handColour = hand.colour;
 
   const prompt = alreadyMarked

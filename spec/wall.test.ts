@@ -53,15 +53,32 @@ it("a returning hand can tell its own mark from everyone else's", async () => {
     body: JSON.stringify({ path }),
   });
   expect(post.status).toBe(201);
+  // A later mark from someone else, so painting in time order would bury this one.
+  const later = await fetch(new URL("/api/marks", baseUrl), {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Cookie: other },
+    body: JSON.stringify({ path: `M${Date.now() % 100_000},20 L21,22` }),
+  });
+  expect(later.status).toBe(201);
 
   const strokeFor = async (cookie: string) => {
     const html = await (await fetch(new URL("/", baseUrl), { headers: { Cookie: cookie } })).text();
     const svg = new JSDOM(html).window.document.getElementById("wall")!;
-    return [...svg.querySelectorAll("path")].find((p) => p.getAttribute("d") === path);
+    const strokes = [...svg.querySelectorAll("path")];
+    return {
+      ownMark: strokes.find((p) => p.getAttribute("d") === path && p.classList.contains("mine")),
+      // On a busy wall, later marks would bury it unless it's painted last.
+      paintedLast: strokes.at(-1)?.getAttribute("d") === path,
+      anyMatch: strokes.some((p) => p.getAttribute("d") === path),
+    };
   };
 
-  expect((await strokeFor(mine))?.classList.contains("mine")).toBe(true);
-  expect((await strokeFor(other))?.classList.contains("mine")).toBe(false);
+  const asMine = await strokeFor(mine);
+  expect(asMine.ownMark).toBeDefined();
+  expect(asMine.paintedLast).toBe(true);
+  const asOther = await strokeFor(other);
+  expect(asOther.anyMatch).toBe(true);
+  expect(asOther.ownMark).toBeUndefined();
 });
 
 it("refuses a second mark from the same hand on the same day", async () => {

@@ -39,6 +39,11 @@ body {
   stroke-width: 7;
 }
 
+#wall path.halo {
+  stroke: Canvas;
+  stroke-width: 13;
+}
+
 main img {
   max-width: 100%;
 }

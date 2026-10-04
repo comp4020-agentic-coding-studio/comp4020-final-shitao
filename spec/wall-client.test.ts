@@ -96,7 +96,7 @@ it("posts one mark for one pointer gesture when a hand can draw", async () => {
   stroke(1, 9);
   await settle();
   expect(posted.length).toBe(1);
-  expect(svg.querySelectorAll("path").length).toBe(1);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
 });
 
 it("never attaches drawing listeners at all when canDraw starts false", async () => {
@@ -105,7 +105,7 @@ it("never attaches drawing listeners at all when canDraw starts false", async ()
   keyboardStroke();
   await settle();
   expect(posted.length).toBe(0);
-  expect(svg.querySelectorAll("path").length).toBe(0);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(0);
 });
 
 it("posts one mark for a keyboard-only gesture: Enter, an arrow step, Enter", async () => {
@@ -117,7 +117,7 @@ it("posts one mark for a keyboard-only gesture: Enter, an arrow step, Enter", as
   keyboardStroke();
   await settle();
   expect(posted.length).toBe(1);
-  expect(svg.querySelectorAll("path").length).toBe(1);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
 });
 
 it("Escape cancels a keyboard gesture in progress without posting anything", async () => {
@@ -127,7 +127,7 @@ it("Escape cancels a keyboard gesture in progress without posting anything", asy
   key("Escape");
   await settle();
   expect(posted.length).toBe(0);
-  expect(svg.querySelectorAll("path").length).toBe(0);
+  expect(svg.querySelectorAll("path").length).toBe(0); // halo included
 });
 
 it("refuses a second gesture in the same tab once the first mark has landed", async () => {
@@ -144,7 +144,7 @@ it("refuses a second gesture in the same tab once the first mark has landed", as
   stroke(20, 40);
   await settle();
   expect(posted.length).toBe(1);
-  expect(svg.querySelectorAll("path").length).toBe(1);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
 });
 
 it("draws another hand's mark even when its path is byte-identical to this tab's own", async () => {
@@ -156,10 +156,13 @@ it("draws another hand's mark even when its path is byte-identical to this tab's
   stroke(1, 9);
   await settle();
   expect(posted.length).toBe(1);
-  expect(svg.querySelectorAll("path").length).toBe(1); // this tab's own `live` stroke
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1); // this tab's own `live` stroke
 
   emitMark({ path: posted[0].path, colour: "#abcdef", nonce: "someone-elses-nonce" });
-  expect(svg.querySelectorAll("path").length).toBe(2);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(2);
+  // Another hand's mark goes under this tab's own stroke and its halo, not on top.
+  expect(svg.firstElementChild?.getAttribute("stroke")).toBe("#abcdef");
+  expect(svg.lastElementChild?.classList.contains("mine")).toBe(true);
 });
 
 it("refuses a second gesture while the first one's post is still in flight", async () => {
@@ -181,14 +184,14 @@ it("refuses a second gesture while the first one's post is still in flight", asy
   stroke(20, 40); // gesture 2, started before gesture 1's fetch resolved
   await settle();
   expect(posted.length).toBe(1); // refused outright, never posted
-  expect(svg.querySelectorAll("path").length).toBe(1); // just gesture 1's own `live` stroke
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1); // just gesture 1's own `live` stroke
 
   emitMark({ path: posted[0].path, colour: "#123456", nonce: posted[0].nonce });
-  expect(svg.querySelectorAll("path").length).toBe(1); // still recognised as its own echo
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1); // still recognised as its own echo
 
   releaseFetch();
   await settle();
-  expect(svg.querySelectorAll("path").length).toBe(1);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
 });
 
 it("doesn't duplicate its own mark when the SSE echo arrives before the post resolves", async () => {
@@ -203,12 +206,12 @@ it("doesn't duplicate its own mark when the SSE echo arrives before the post res
   stroke(1, 9);
   await settle();
   expect(posted.length).toBe(1);
-  expect(svg.querySelectorAll("path").length).toBe(1); // the `live` stroke, fetch still pending
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1); // the `live` stroke, fetch still pending
 
   emitMark({ path: posted[0].path, colour: "#123456", nonce: posted[0].nonce });
-  expect(svg.querySelectorAll("path").length).toBe(1); // recognised as its own echo, not drawn again
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1); // recognised as its own echo, not drawn again
 
   releaseFetch();
   await settle();
-  expect(svg.querySelectorAll("path").length).toBe(1);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
 });

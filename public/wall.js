@@ -44,21 +44,34 @@
     const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
     p.setAttribute("d", path);
     p.setAttribute("stroke", colour);
-    svg.appendChild(p);
+    // Under this hand's own strokes, which the server paints last.
+    svg.insertBefore(p, svg.querySelector(".halo, .mine"));
   };
+
+  // The stroke being drawn, over its halo, mirroring what the server renders
+  // for a hand's own marks.
+  let halo = null;
 
   const beginGesture = (point) => {
     drawing = true;
     points = [point];
+    halo = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    halo.setAttribute("class", "halo");
     live = document.createElementNS("http://www.w3.org/2000/svg", "path");
     live.setAttribute("stroke", handColour);
     live.setAttribute("class", "mine");
-    svg.appendChild(live);
+    svg.append(halo, live);
   };
 
   const addPoint = (point) => {
     points.push(point);
+    halo.setAttribute("d", pathFrom(points));
     live.setAttribute("d", pathFrom(points));
+  };
+
+  const dropLive = () => {
+    halo?.remove();
+    live?.remove();
   };
 
   if (canDraw) {
@@ -77,7 +90,7 @@
       if (!drawing) return;
       drawing = false;
       if (points.length < 2) {
-        live?.remove();
+        dropLive();
         return;
       }
       const path = pathFrom(points);
@@ -96,7 +109,7 @@
         if (!res.ok) {
           const text = await res.text();
           status.textContent = text || "That mark wasn't accepted.";
-          live?.remove();
+          dropLive();
           pendingNonce = null;
           return;
         }
@@ -104,7 +117,7 @@
         status.textContent = "Your mark is on the wall. You can add another in 24 hours.";
       } catch {
         status.textContent = "Couldn't reach the wall --- try again.";
-        live?.remove();
+        dropLive();
         pendingNonce = null;
       } finally {
         submitting = false;
@@ -151,7 +164,7 @@
       if (evt.key === "Escape") {
         evt.preventDefault();
         drawing = false;
-        live?.remove();
+        dropLive();
       }
     });
   }
