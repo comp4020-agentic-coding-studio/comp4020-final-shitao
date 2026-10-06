@@ -82,3 +82,19 @@ said its hand colours were "not tuned for contrast," and nothing tuned them.
 Five of ten failed WCAG's 3:1 non-text minimum against white or black; they
 were retuned and `spec/contrast.test.ts` now reads the palette from source
 ([`de8164a`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/de8164a)).
+
+## Several people at once
+
+Crit 9 asked for one decision about several people using the app together.
+I chose what a tab sees after its stream drops, because every push now
+redeploys the one machine. A real browser settled it: with a tab open, I
+killed the server, restarted it, and posted a mark. Chrome hadn't retried.
+Its `EventSource` sat `CLOSED`, and the tab would have stayed frozen until
+a reload. The stream now replays everything after the last mark id a tab
+has
+([`7894d00`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/7894d00)),
+and `wall.js` reopens a stream the browser gave up on
+([`a1d5567`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/a1d5567)).
+The rejected options and the costs are in
+[`decisions/0001`](decisions/0001-coming-back-after-a-gap.md)
+([`9645567`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/9645567)).
