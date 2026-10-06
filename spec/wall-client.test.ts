@@ -49,20 +49,35 @@ function buildWall({
         resolveFetch = resolve;
       });
     }
-    return new Response(null, { status: 201 });
+    return new Response(JSON.stringify({ id: posted.length }), { status: 201 });
   }) as typeof fetch;
   // wall.js opens one unconditionally on load; there's no server to answer it,
   // so tests dispatch "mark" events through this stub directly.
-  let markListener: ((evt: { data: string }) => void) | undefined;
-  (window as unknown as { EventSource: unknown }).EventSource = class {
-    addEventListener(_type: string, listener: (evt: { data: string }) => void) {
-      markListener = listener;
+  // One stub per stream wall.js opens; tests dispatch "mark" events through
+  // the newest one and can drop it the way a dying server does.
+  class StubEventSource {
+    static CLOSED = 2;
+    readyState = 1;
+    listeners: Record<string, (evt: { data: string }) => void> = {};
+    constructor(public url: string) {
+      streams.push(this);
     }
+    addEventListener(type: string, listener: (evt: { data: string }) => void) {
+      this.listeners[type] = listener;
+    }
+  }
+  const streams: StubEventSource[] = [];
+  (window as unknown as { EventSource: unknown }).EventSource = StubEventSource;
+  // wall.js's only timer is its reconnect delay; tests run it on demand.
+  const timers: (() => void)[] = [];
+  (window as unknown as { setTimeout: (fn: () => void) => void }).setTimeout = (fn) => {
+    timers.push(fn);
   };
 
   const script = window.document.createElement("script");
   script.dataset.handColour = "#123456";
   script.dataset.canDraw = String(canDraw);
+  script.dataset.since = "41";
   script.textContent = wallSource;
   window.document.body.appendChild(script);
 
@@ -85,11 +100,37 @@ function buildWall({
   };
   // Flush the microtask queue fetch's promise chain runs on.
   const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
-  const emitMark = (mark: { path: string; colour: string; nonce?: string }) =>
-    markListener?.({ data: JSON.stringify(mark) });
+  // Marks other hands draw get ids well clear of this tab's own posts' ids.
+  let nextId = 1000;
+  const emitMark = (mark: {
+    id?: number;
+    path: string;
+    colour: string;
+    mine?: boolean;
+    nonce?: string;
+  }) => streams.at(-1)!.listeners.mark({ data: JSON.stringify({ id: nextId++, ...mark }) });
+  const dropStream = () => {
+    const stream = streams.at(-1)!;
+    stream.readyState = StubEventSource.CLOSED;
+    stream.listeners.error({ data: "" });
+  };
+  const runTimers = () => timers.splice(0).forEach((fn) => fn());
   const releaseFetch = () => resolveFetch?.();
 
-  return { svg, status, posted, stroke, key, keyboardStroke, settle, emitMark, releaseFetch };
+  return {
+    svg,
+    status,
+    posted,
+    stroke,
+    key,
+    keyboardStroke,
+    settle,
+    emitMark,
+    releaseFetch,
+    streamUrls: () => streams.map((s) => s.url),
+    dropStream,
+    runTimers,
+  };
 }
 
 it("posts one mark for one pointer gesture when a hand can draw", async () => {
@@ -225,4 +266,55 @@ it("doesn't duplicate its own mark when the SSE echo arrives before the post res
   releaseFetch();
   await settle();
   expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
+});
+
+it("opens its stream from the last mark the page rendered", () => {
+  // Otherwise a mark landing between the page render and the stream
+  // connecting would be on nobody's wall until a reload.
+  const { streamUrls } = buildWall({ canDraw: false });
+  expect(streamUrls()).toEqual(["/api/marks/stream?since=41"]);
+});
+
+it("doesn't redraw its own mark when a reconnect replays it without the nonce", async () => {
+  // The nonce is never stored, so a replay after a dropped stream can't
+  // carry it; the id the post returned is what recognises the mark.
+  const { svg, posted, stroke, settle, emitMark } = buildWall({ canDraw: true });
+  stroke(1, 9);
+  await settle();
+  expect(posted.length).toBe(1);
+
+  emitMark({ id: 1, path: posted[0].path, colour: "#123456", mine: true });
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
+});
+
+it("draws another hand's replayed marks once each", () => {
+  const { svg, emitMark } = buildWall({ canDraw: false });
+  emitMark({ id: 7, path: "M1,1 L2,2", colour: "#abcdef" });
+  emitMark({ id: 7, path: "M1,1 L2,2", colour: "#abcdef" });
+  expect(svg.querySelectorAll("path").length).toBe(1);
+});
+
+it("paints a mark from this hand's other tab as its own, and stops this tab drawing a second", async () => {
+  const { svg, status, posted, stroke, settle, emitMark } = buildWall({ canDraw: true });
+  emitMark({ path: "M5,5 L6,6", colour: "#123456", mine: true });
+  expect(svg.lastElementChild?.classList.contains("mine")).toBe(true);
+  expect(svg.querySelectorAll(".halo").length).toBe(1);
+  expect(status.textContent).toContain("from another tab");
+
+  stroke(1, 9);
+  await settle();
+  expect(posted.length).toBe(0);
+});
+
+it("reopens a stream the browser gave up on, from the newest mark it has", () => {
+  // Chrome closes an EventSource for good when the server dies mid-stream
+  // (a redeploy), rather than retrying with Last-Event-ID.
+  const { svg, emitMark, dropStream, runTimers, streamUrls } = buildWall({ canDraw: false });
+  emitMark({ id: 50, path: "M1,1 L2,2", colour: "#abcdef" });
+  dropStream();
+  runTimers();
+  expect(streamUrls()).toEqual(["/api/marks/stream?since=41", "/api/marks/stream?since=50"]);
+
+  emitMark({ id: 51, path: "M3,3 L4,4", colour: "#abcdef" });
+  expect(svg.querySelectorAll("path").length).toBe(2);
 });

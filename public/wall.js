@@ -29,6 +29,11 @@
   // the SSE push for this tab's own mark can genuinely arrive before its own
   // fetch's promise resolves.
   let pendingNonce = null;
+  // Ids of marks already on this tab's wall from the stream or its own post.
+  // A reconnect replays everything after the last id the browser saw, and a
+  // replayed copy of this tab's own mark carries no nonce, so the id is what
+  // stops it being drawn twice.
+  const seen = new Set();
 
   const toViewBox = (evt) => {
     const rect = svg.getBoundingClientRect();
@@ -46,6 +51,19 @@
     p.setAttribute("stroke", colour);
     // Under this hand's own strokes, which the server paints last.
     svg.insertBefore(p, svg.querySelector(".halo, .mine"));
+  };
+
+  // A hand's own mark, from another of its tabs or replayed after a gap,
+  // painted the way the server paints it: on top, over a halo.
+  const appendOwnStroke = (path, colour) => {
+    const halo = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    halo.setAttribute("d", path);
+    halo.setAttribute("class", "halo");
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", path);
+    p.setAttribute("stroke", colour);
+    p.setAttribute("class", "mine");
+    svg.append(halo, p);
   };
 
   // The stroke being drawn, over its halo, mirroring what the server renders
@@ -114,6 +132,9 @@
           return;
         }
         canDraw = false;
+        const { id } = await res.json();
+        seen.add(id);
+        lastId = Math.max(lastId, id);
         status.textContent =
           "Your mark is on the wall: the thicker stroke, on top. You can add another in 24 hours.";
       } catch {
@@ -170,13 +191,43 @@
     });
   }
 
-  const stream = new EventSource("/api/marks/stream");
-  stream.addEventListener("mark", (evt) => {
+  // The newest mark this tab has, so a fresh stream can ask for everything
+  // after it. Starts at the last mark the page rendered, so a mark landing
+  // between the render and the first connect isn't lost.
+  let lastId = Number(script.dataset.since) || 0;
+
+  const onMark = (evt) => {
     const mark = JSON.parse(evt.data);
+    lastId = Math.max(lastId, mark.id);
+    if (seen.has(mark.id)) return;
+    seen.add(mark.id);
     if (mark.nonce && mark.nonce === pendingNonce) {
       pendingNonce = null;
       return;
     }
-    appendStroke(mark.path, mark.colour);
-  });
+    if (!mark.mine) {
+      appendStroke(mark.path, mark.colour);
+      return;
+    }
+    appendOwnStroke(mark.path, mark.colour);
+    // Drawn from another tab of this hand: this one can't add a second.
+    if (canDraw && !submitting) {
+      canDraw = false;
+      status.textContent =
+        "Your mark is on the wall, from another tab: the thicker stroke, on top. You can add another in 24 hours.";
+    }
+  };
+
+  // EventSource retries on its own after a clean close, sending
+  // Last-Event-ID, but Chrome gives up for good (CLOSED) when the server
+  // process dies mid-stream --- exactly what a redeploy does. Reopening from
+  // lastId covers both; the server replays the gap either way.
+  const connect = () => {
+    const stream = new EventSource(`/api/marks/stream?since=${lastId}`);
+    stream.addEventListener("mark", onMark);
+    stream.addEventListener("error", () => {
+      if (stream.readyState === EventSource.CLOSED) setTimeout(connect, 3000);
+    });
+  };
+  connect();
 })();
