@@ -46,7 +46,9 @@ Option 3. The page records the id of the newest mark it rendered, and
 a mark landing between the page render and the stream connecting, which
 used to vanish too. A browser that retries on its own sends
 `Last-Event-ID`, and the server prefers that. When Chrome gives up instead,
-`wall.js` reopens the stream from the newest id it has seen. Replay and
+`wall.js` reopens the stream from the newest id it has seen. It also
+reopens the moment a backgrounded tab is visible again, rather than trust
+a stream a sleeping phone may have lost without saying so. Replay and
 subscribe happen in one synchronous turn in `src/server.ts`, so a mark
 can't land between them and be missed or sent twice.
 
@@ -88,7 +90,7 @@ from the rendered page catches a mark posted before the stream existed,
 and that only the drawing hand's own streams get `mine`.
 `spec/wall-client.test.ts` drives the real `wall.js`: it opens from the
 page's id, ignores a replayed copy of its own mark, draws each replayed
-mark once, reopens a stream Chrome closed, and treats a `mine` mark from
-another tab as this hand's. In a real browser I killed the server with a
+mark once, reopens a stream Chrome closed, reopens on coming back into view without leaving a second stream
+open, and treats a `mine` mark from another tab as this hand's. In a real browser I killed the server with a
 tab open, restarted it, and posted a mark before the tab reconnected. The
 mark appeared without a reload.
