@@ -1,7 +1,15 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFileSync } from "node:fs";
 import { extname, join } from "node:path";
-import { addMark, allMarks, createHand, getHand, msUntilNextMark } from "./db.ts";
+import {
+  addMark,
+  allMarks,
+  createHand,
+  getHand,
+  marksSince,
+  msUntilNextMark,
+  type Mark,
+} from "./db.ts";
 import { colourFor, nameFor, newHandId, parseHandCookie, setHandCookie } from "./identity.ts";
 import { readmePage, untilPhrase, wallPage } from "./pages.ts";
 
@@ -63,16 +71,43 @@ function ensureHand(req: IncomingMessage, res: ServerResponse): HandInfo {
 // fan-out to build.
 interface SseClient {
   res: ServerResponse;
+  handId: string | undefined;
   heartbeat: ReturnType<typeof setInterval>;
 }
 
 const sseClients = new Set<SseClient>();
 
-function broadcastMark(mark: { path: string; colour: string; nonce?: string }): void {
-  const payload = JSON.stringify({ path: mark.path, colour: mark.colour, nonce: mark.nonce });
+// Each event carries the mark's row id as its SSE `id:`, so a reconnecting
+// EventSource sends it back as Last-Event-ID and gets exactly what it missed
+// (decisions/0001). `mine` goes only to connections whose own cookie drew the
+// mark, so a hand's second tab can paint it as theirs without a hand id ever
+// leaving the server.
+function markEvent(mark: Mark, handId: string | undefined, nonce?: string): string {
+  const payload = JSON.stringify({
+    id: mark.id,
+    path: mark.path,
+    colour: mark.colour,
+    mine: mark.hand_id === handId,
+    nonce,
+  });
+  return `id: ${mark.id}\nevent: mark\ndata: ${payload}\n\n`;
+}
+
+function broadcastMark(mark: Mark, nonce?: string): void {
   for (const client of sseClients) {
-    client.res.write(`event: mark\ndata: ${payload}\n\n`);
+    client.res.write(markEvent(mark, client.handId, nonce));
   }
+}
+
+// Where a stream should resume: the browser's own Last-Event-ID on a
+// reconnect, else the `since` the page was rendered with on first connect
+// (EventSource can't set the header itself). With neither, it's live only.
+function resumeFrom(req: IncomingMessage, url: URL): number | undefined {
+  const raw = req.headers["last-event-id"] ?? url.searchParams.get("since");
+  const n = Number(raw);
+  return typeof raw === "string" && raw !== "" && Number.isSafeInteger(n) && n >= 0
+    ? n
+    : undefined;
 }
 
 const server = createServer(async (req, res) => {
@@ -100,10 +135,17 @@ const server = createServer(async (req, res) => {
         Connection: "keep-alive",
       });
       res.write(": connected\n\n");
+      const handId = parseHandCookie(req.headers.cookie);
+      // Replay and subscribe in the same synchronous turn, so no mark can
+      // land between them and be either missed or sent twice.
+      const since = resumeFrom(req, url);
+      if (since !== undefined) {
+        for (const mark of marksSince(since)) res.write(markEvent(mark, handId));
+      }
       // Fly's proxy (and some browsers) will drop an idle connection; a
       // comment line every 20s is invisible to EventSource but keeps it open.
       const heartbeat = setInterval(() => res.write(": ping\n\n"), 20_000);
-      const client: SseClient = { res, heartbeat };
+      const client: SseClient = { res, handId, heartbeat };
       sseClients.add(client);
       req.on("close", () => {
         clearInterval(heartbeat);
@@ -163,9 +205,11 @@ const server = createServer(async (req, res) => {
       }
 
       const mark = addMark(hand.id, path, hand.colour);
-      broadcastMark({ ...mark, nonce: markNonce });
-      res.writeHead(201, { "Content-Type": "text/plain; charset=utf-8" });
-      res.end("ok");
+      broadcastMark(mark, markNonce);
+      // The id lets wall.js recognise this mark if a reconnect replays it
+      // without the nonce, which is never stored.
+      res.writeHead(201, { "Content-Type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify({ id: mark.id }));
       return;
     }
 

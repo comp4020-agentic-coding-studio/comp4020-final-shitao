@@ -47,6 +47,9 @@ export function wallPage(
     ]),
   ].join("\n      ");
   const ownCount = own.length;
+  // The stream picks up after the last mark this page rendered, so a mark
+  // landing between this render and wall.js connecting isn't lost.
+  const since = marks.reduce((max, m) => Math.max(max, m.id), 0);
   const handColour = hand.colour;
 
   const prompt = alreadyMarked
@@ -72,6 +75,7 @@ export function wallPage(
       src="/wall.js"
       data-can-draw="${alreadyMarked ? "false" : "true"}"
       data-hand-colour="${escape(handColour)}"
+      data-since="${since}"
     ></script>`,
   );
 }

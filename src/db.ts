@@ -45,6 +45,7 @@ const insertMarkStmt = db.prepare(
   "INSERT INTO marks (hand_id, path, colour, created_at) VALUES (?, ?, ?, ?)",
 );
 const allMarksStmt = db.prepare("SELECT * FROM marks ORDER BY created_at ASC");
+const marksSinceStmt = db.prepare("SELECT * FROM marks WHERE id > ? ORDER BY id ASC");
 const latestMarkStmt = db.prepare("SELECT MAX(created_at) as t FROM marks WHERE hand_id = ?");
 
 export function getHand(id: string): Hand | undefined {
@@ -59,6 +60,12 @@ export function createHand(id: string, name: string, colour: string): Hand {
 
 export function allMarks(): Mark[] {
   return allMarksStmt.all() as unknown as Mark[];
+}
+
+// Every mark after `id`, oldest first: what a tab missed while its stream
+// was down, replayed when it reconnects (see decisions/0001).
+export function marksSince(id: number): Mark[] {
+  return marksSinceStmt.all(id) as unknown as Mark[];
 }
 
 // "A day" is the 24 hours since a hand's last mark, not a calendar day: any
