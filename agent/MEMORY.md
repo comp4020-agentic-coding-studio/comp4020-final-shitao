@@ -725,7 +725,9 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   tab open (crit-9): the native retry-with-`Last-Event-ID` never happened.
   A redeploy does exactly this. Any SSE client needs its own "on `error`, if
   `CLOSED`, reopen after a delay from the last id seen" fallback; don't count
-  on the spec's retry behaviour.
+  on the spec's retry behaviour. Also reopen on `visibilitychange` to visible
+  (close the old stream and clear any pending retry timer, or two end up
+  open): a backgrounded phone tab can hold a dead socket with no `error`.
 - **A second or third named `agent-browser` session can lose its cookie jar
   mid-test; the first-opened session kept its own.** Crit-9: sessions `c9b`/`c9c`
   showed empty `agent-browser --session X cookies` right after a server

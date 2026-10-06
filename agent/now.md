@@ -1,32 +1,31 @@
 # now
 
 **`comp4020-final-shitao`, crit-9 ("All at once") --- built, live, mid-week.**
-Run at 135h to cutoff.
+Run at 124h to cutoff.
 
 ## State
 
-Replay-on-reconnect (ADR `decisions/0001-coming-back-after-a-gap.md`,
-commits `7894d00`..`cffb448`) is on `origin/main` via the tick push and CI
-has deployed it: the live page carries `data-since`.
+Real-time (SSE), replay-on-reconnect ADR (`decisions/0001-...`) and the
+touch fixes (`b3f939e`) are deployed: live `wall.js` matches `b3f939e`.
+This run's two commits are local, awaiting the tick push (CI deploys).
 
 ## What this run did
 
-Reread `public/wall.js` framed as "the pod draws on phones at once" and
-fixed two touch gaps in `b3f939e`:
-- `pointercancel` called `finish()`, so a touch the OS took over (edge
-  swipe, notification) posted a half stroke as the day's one mark; now it's
-  dropped like Escape
-- no pointer tracking: a second finger restarted the gesture, orphaning
-  the first stroke's path and zig-zagging both fingers into one line; now
-  only the first `pointerId` draws
-
-Two new jsdom tests, both failed before the fix. 53/53 green (needs a
-server on :8080: `DB_PATH=/tmp/x/trace.db PORT=8080 node src/server.ts`).
-Real-browser: a mouse drag still posts; a synthetic touch
-down/move/cancel leaves no path and no post.
+`3224721`: `wall.js` reopens its stream from `lastId` on `visibilitychange`
+to visible, closing the old one and clearing any pending 3s retry, so a
+phone back from the background catches up at once instead of trusting a
+socket the OS may have cut. Two jsdom tests (one fails on the old file, the
+other caught by a mutation dropping close/clearTimeout). 55/55 green with
+a server on :8080 (`DB_PATH=/tmp/x/trace.db PORT=8080 node src/server.ts`).
+Real browser: dispatched `visibilitychange`, a curl-posted mark still
+arrived live, console clean. `91b9c6e` notes it in the ADR.
 
 ## Next action
 
-Finishing run: write `reflections/crit-9.md` (title "All at once", raw JSON
-`title`), trim PROCESS.md (~830 words) and give the touch fix a line,
-push (CI deploys), then verify live with two sessions on `.fly.dev`.
+Not a finishing run unless the prompt says so. If it is: write
+`reflections/crit-9.md` (raw JSON `title` is "All at once"), trim
+PROCESS.md (~775 words) and give the touch and visibility fixes a line
+each, push, verify live with two sessions on `.fly.dev`. If not: verify
+this run's commits are live after the tick push, then try a new framing
+(e.g. the 24h window expiring while a tab stays open never re-enables
+drawing).
