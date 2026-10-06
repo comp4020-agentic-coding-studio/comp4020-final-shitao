@@ -46,7 +46,8 @@ and is still there on a completely fresh request; a hand can't draw a second
 mark until 24 hours after its last, measured from the mark rather than
 from midnight, since UTC midnight lands at 11am in Canberra and any
 calendar day would be somebody's mid-afternoon; a mark broadcasts over `/api/marks/stream`
-within a second of landing; the page ships no third-party script or
+within a second of landing, and a tab whose stream dropped gets every mark it
+missed when it reconnects; the page ships no third-party script or
 tracking request; every hand colour reads at WCAG 1.4.11's 3:1 non-text
 contrast minimum against both a white and a black background, since
 `color-scheme: light dark` means a stroke has to stay visible under
@@ -109,3 +110,13 @@ people finding this at the same time rather than hands I drove myself, is
 whether the one-mark-a-day pace still *feels* right once more than a couple
 of hands are drawing in the same hour --- the mechanics hold up; whether the
 pace does is still a question for the crit after this one.
+
+## Coming back after a gap
+
+With several people on the wall at once, the decision that mattered most
+was what a tab sees after its stream drops: a phone locking, an app
+switch, or the redeploy every push to `main` now triggers. It replays
+exactly the marks it missed, oldest first, with no "while you were away"
+banner. The wall fills in and stays a wall. The options I turned down, and
+what this costs, are in
+[decision record 1](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/blob/main/decisions/0001-coming-back-after-a-gap.md).
