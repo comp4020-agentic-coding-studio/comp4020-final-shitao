@@ -236,12 +236,27 @@
   // Last-Event-ID, but Chrome gives up for good (CLOSED) when the server
   // process dies mid-stream --- exactly what a redeploy does. Reopening from
   // lastId covers both; the server replays the gap either way.
+  let stream;
+  let retry;
   const connect = () => {
-    const stream = new EventSource(`/api/marks/stream?since=${lastId}`);
-    stream.addEventListener("mark", onMark);
-    stream.addEventListener("error", () => {
-      if (stream.readyState === EventSource.CLOSED) setTimeout(connect, 3000);
+    clearTimeout(retry);
+    stream?.close();
+    const opened = new EventSource(`/api/marks/stream?since=${lastId}`);
+    stream = opened;
+    opened.addEventListener("mark", onMark);
+    opened.addEventListener("error", () => {
+      if (opened === stream && opened.readyState === EventSource.CLOSED) {
+        retry = setTimeout(connect, 3000);
+      }
     });
   };
   connect();
+
+  // A phone tab back from the background can be holding a stream the OS
+  // cut while it slept, and nothing says so until the socket times out or
+  // the browser's own retry fires seconds later. Reopen the moment the
+  // wall is visible again; the replay fills whatever it missed.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") connect();
+  });
 })();

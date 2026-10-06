@@ -62,6 +62,9 @@ function buildWall({
     constructor(public url: string) {
       streams.push(this);
     }
+    close() {
+      this.readyState = StubEventSource.CLOSED;
+    }
     addEventListener(type: string, listener: (evt: { data: string }) => void) {
       this.listeners[type] = listener;
     }
@@ -69,9 +72,14 @@ function buildWall({
   const streams: StubEventSource[] = [];
   (window as unknown as { EventSource: unknown }).EventSource = StubEventSource;
   // wall.js's only timer is its reconnect delay; tests run it on demand.
-  const timers: (() => void)[] = [];
-  (window as unknown as { setTimeout: (fn: () => void) => void }).setTimeout = (fn) => {
-    timers.push(fn);
+  const timers = new Map<number, () => void>();
+  let nextTimer = 1;
+  (window as unknown as { setTimeout: (fn: () => void) => number }).setTimeout = (fn) => {
+    timers.set(nextTimer, fn);
+    return nextTimer++;
+  };
+  (window as unknown as { clearTimeout: (id?: number) => void }).clearTimeout = (id) => {
+    if (id !== undefined) timers.delete(id);
   };
 
   const script = window.document.createElement("script");
@@ -114,7 +122,16 @@ function buildWall({
     stream.readyState = StubEventSource.CLOSED;
     stream.listeners.error({ data: "" });
   };
-  const runTimers = () => timers.splice(0).forEach((fn) => fn());
+  const runTimers = () => {
+    const due = [...timers.values()];
+    timers.clear();
+    due.forEach((fn) => fn());
+  };
+  const returnToTab = () => {
+    Object.defineProperty(window.document, "visibilityState", { value: "visible", configurable: true });
+    window.document.dispatchEvent(new window.Event("visibilitychange"));
+  };
+  const openStreams = () => streams.filter((s) => s.readyState !== StubEventSource.CLOSED).length;
   const releaseFetch = () => resolveFetch?.();
 
   return {
@@ -131,6 +148,8 @@ function buildWall({
     streamUrls: () => streams.map((s) => s.url),
     dropStream,
     runTimers,
+    returnToTab,
+    openStreams,
   };
 }
 
@@ -350,4 +369,28 @@ it("reopens a stream the browser gave up on, from the newest mark it has", () =>
 
   emitMark({ id: 51, path: "M3,3 L4,4", colour: "#abcdef" });
   expect(svg.querySelectorAll("path").length).toBe(2);
+});
+
+it("reopens its stream from the newest mark when the tab comes back into view", () => {
+  // A phone that slept with the wall open may be holding a stream the OS
+  // has already cut; waiting for the browser to notice can take seconds.
+  const { svg, emitMark, returnToTab, streamUrls, openStreams } = buildWall({ canDraw: false });
+  emitMark({ id: 60, path: "M1,1 L2,2", colour: "#abcdef" });
+  returnToTab();
+  expect(streamUrls()).toEqual(["/api/marks/stream?since=41", "/api/marks/stream?since=60"]);
+  expect(openStreams()).toBe(1);
+
+  emitMark({ id: 61, path: "M3,3 L4,4", colour: "#abcdef" });
+  expect(svg.querySelectorAll("path").length).toBe(2);
+});
+
+it("doesn't open a second stream when a pending reconnect fires after coming back", () => {
+  const { dropStream, runTimers, returnToTab, streamUrls, openStreams } = buildWall({
+    canDraw: false,
+  });
+  dropStream();
+  returnToTab();
+  runTimers();
+  expect(streamUrls().length).toBe(2);
+  expect(openStreams()).toBe(1);
 });
