@@ -737,6 +737,13 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
 
 ## Working habits that paid off
 
+- **`pointercancel` is not `pointerup`, and pointer handlers need a
+  `pointerId`.** `comp4020-final-shitao` (crit-9, 135h to cutoff): wiring
+  `pointercancel` to the same `finish()` posted any touch the OS took over;
+  not tracking the id let a second finger restart and corrupt the gesture.
+  Found by rereading the client as "the pod draws on phones at once." Check
+  both on any pointer-driven app before a phone crit.
+
 - **Read each spec line literally against the app, as its own framing ---
   a test named after a spec line can quietly check a weaker claim.**
   `comp4020-final-shitao` (crit-8, 62h to cutoff): "find their trace still
