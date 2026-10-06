@@ -93,14 +93,20 @@
   };
 
   if (canDraw) {
+    // The one pointer drawing. A second finger on a phone is ignored rather
+    // than starting a new gesture over the first, which would orphan the
+    // first stroke's path and mix both fingers into one line.
+    let pointerId = null;
+
     svg.addEventListener("pointerdown", (evt) => {
-      if (!canDraw || submitting) return;
+      if (!canDraw || submitting || drawing) return;
+      pointerId = evt.pointerId;
       beginGesture(toViewBox(evt));
       svg.setPointerCapture(evt.pointerId);
     });
 
     svg.addEventListener("pointermove", (evt) => {
-      if (!drawing) return;
+      if (!drawing || evt.pointerId !== pointerId) return;
       addPoint(toViewBox(evt));
     });
 
@@ -146,8 +152,16 @@
       }
     };
 
-    svg.addEventListener("pointerup", finish);
-    svg.addEventListener("pointercancel", finish);
+    svg.addEventListener("pointerup", (evt) => {
+      if (evt.pointerId === pointerId) finish();
+    });
+    // The system took the touch (an edge swipe, a notification): nobody
+    // finished this stroke, so it's dropped like Escape, not posted.
+    svg.addEventListener("pointercancel", (evt) => {
+      if (!drawing || evt.pointerId !== pointerId) return;
+      drawing = false;
+      dropLive();
+    });
 
     // A pointer is the only way to draw unless this exists: Enter/Space
     // starts a gesture at the wall's centre, the arrow keys add a point each

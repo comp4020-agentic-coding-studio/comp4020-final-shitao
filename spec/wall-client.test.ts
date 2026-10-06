@@ -81,9 +81,9 @@ function buildWall({
   script.textContent = wallSource;
   window.document.body.appendChild(script);
 
-  const gesture = (x: number, y: number, type: string) =>
+  const gesture = (x: number, y: number, type: string, pointerId = 1) =>
     svg.dispatchEvent(
-      new window.PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, bubbles: true }),
+      new window.PointerEvent(type, { clientX: x, clientY: y, pointerId, bubbles: true }),
     );
   const stroke = (from: number, to: number) => {
     gesture(from, from, "pointerdown");
@@ -121,6 +121,7 @@ function buildWall({
     svg,
     status,
     posted,
+    gesture,
     stroke,
     key,
     keyboardStroke,
@@ -180,6 +181,38 @@ it("Escape cancels a keyboard gesture in progress without posting anything", asy
   await settle();
   expect(posted.length).toBe(0);
   expect(svg.querySelectorAll("path").length).toBe(0); // halo included
+});
+
+it("posts nothing when the browser cancels a pointer gesture partway", async () => {
+  // On a phone, pointercancel means the system took the touch (an edge
+  // swipe, a notification pulled down), not that the hand lifted it. Posting
+  // there would spend the day's one mark on a stroke nobody finished.
+  const { svg, posted, gesture, settle } = buildWall({ canDraw: true });
+  gesture(1, 1, "pointerdown");
+  gesture(9, 9, "pointermove");
+  gesture(9, 9, "pointercancel");
+  await settle();
+  expect(posted.length).toBe(0);
+  expect(svg.querySelectorAll("path").length).toBe(0); // halo included
+});
+
+it("follows only the first finger when a second touches mid-gesture", async () => {
+  // A second pointerdown used to start a fresh gesture over the first,
+  // leaving the first finger's stroke on the wall as a path nothing would
+  // ever post or remove, and feeding both fingers' moves into one zig-zag.
+  const { svg, posted, gesture, settle } = buildWall({ canDraw: true });
+  gesture(1, 1, "pointerdown", 1);
+  gesture(5, 5, "pointermove", 1);
+  gesture(80, 80, "pointerdown", 2);
+  gesture(90, 90, "pointermove", 2);
+  gesture(9, 9, "pointermove", 1);
+  gesture(90, 90, "pointerup", 2);
+  expect(posted.length).toBe(0);
+  gesture(9, 9, "pointerup", 1);
+  await settle();
+  expect(posted.map((m) => m.path)).toEqual(["M1,1 L5,5 L9,9"]);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
+  expect(svg.querySelectorAll("path.halo").length).toBe(1);
 });
 
 it("refuses a second gesture in the same tab once the first mark has landed", async () => {
