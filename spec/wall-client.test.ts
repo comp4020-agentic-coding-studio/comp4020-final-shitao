@@ -14,9 +14,11 @@ const wallSource = readFileSync("public/wall.js", "utf8");
 function buildWall({
   canDraw,
   deferFetch = false,
+  nextMarkIn,
 }: {
   canDraw: boolean;
   deferFetch?: boolean;
+  nextMarkIn?: number;
 }) {
   const dom = new JSDOM(
     `<!doctype html><body>
@@ -71,7 +73,12 @@ function buildWall({
   }
   const streams: StubEventSource[] = [];
   (window as unknown as { EventSource: unknown }).EventSource = StubEventSource;
-  // wall.js's only timer is its reconnect delay; tests run it on demand.
+  // wall.js reads the clock to know when a hand's 24 hours are up; tests
+  // move it on by hand.
+  let now = 1_000_000;
+  (window.Date as unknown as { now: () => number }).now = () => now;
+  // wall.js's timers (the reconnect delay, the reopen when a hand's 24
+  // hours are up) never fire on their own; tests run them on demand.
   const timers = new Map<number, () => void>();
   let nextTimer = 1;
   (window as unknown as { setTimeout: (fn: () => void) => number }).setTimeout = (fn) => {
@@ -86,6 +93,7 @@ function buildWall({
   script.dataset.handColour = "#123456";
   script.dataset.canDraw = String(canDraw);
   script.dataset.since = "41";
+  if (nextMarkIn !== undefined) script.dataset.nextMarkIn = String(nextMarkIn);
   script.textContent = wallSource;
   window.document.body.appendChild(script);
 
@@ -133,6 +141,9 @@ function buildWall({
   };
   const openStreams = () => streams.filter((s) => s.readyState !== StubEventSource.CLOSED).length;
   const releaseFetch = () => resolveFetch?.();
+  const advanceClock = (ms: number) => {
+    now += ms;
+  };
 
   return {
     svg,
@@ -150,6 +161,7 @@ function buildWall({
     runTimers,
     returnToTab,
     openStreams,
+    advanceClock,
   };
 }
 
@@ -171,7 +183,7 @@ it("tells a hand which stroke is theirs the moment its first mark lands", async 
   expect(status.textContent).toContain("the thicker stroke");
 });
 
-it("never attaches drawing listeners at all when canDraw starts false", async () => {
+it("refuses to draw when canDraw starts false", async () => {
   const { svg, posted, stroke, keyboardStroke, settle } = buildWall({ canDraw: false });
   stroke(1, 9);
   keyboardStroke();
@@ -393,4 +405,46 @@ it("doesn't open a second stream when a pending reconnect fires after coming bac
   runTimers();
   expect(streamUrls().length).toBe(2);
   expect(openStreams()).toBe(1);
+});
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+it("lets a hand draw again in a tab left open past its 24 hours", async () => {
+  // The page said "already on the wall"; without a reload, it used to say
+  // so forever, however long the tab stayed open.
+  const { svg, status, posted, stroke, settle, advanceClock, runTimers } = buildWall({
+    canDraw: false,
+    nextMarkIn: 3_600_000,
+  });
+  runTimers();
+  stroke(1, 9);
+  await settle();
+  expect(posted.length).toBe(0);
+
+  advanceClock(3_600_000);
+  runTimers();
+  expect(svg.getAttribute("tabindex")).toBe("0");
+  expect(status.textContent).toContain("You can add another mark");
+  stroke(1, 9);
+  await settle();
+  expect(posted.length).toBe(1);
+  expect(svg.hasAttribute("tabindex")).toBe(false);
+});
+
+it("lets a hand draw again when a tab comes back into view after its 24 hours", async () => {
+  // A phone asleep overnight stalls its timers; coming back has to check.
+  const { posted, stroke, settle, advanceClock, returnToTab } = buildWall({ canDraw: true });
+  stroke(1, 9);
+  await settle();
+  advanceClock(DAY_MS - 1);
+  returnToTab();
+  stroke(1, 9);
+  await settle();
+  expect(posted.length).toBe(1);
+
+  advanceClock(1);
+  returnToTab();
+  stroke(1, 9);
+  await settle();
+  expect(posted.length).toBe(2);
 });

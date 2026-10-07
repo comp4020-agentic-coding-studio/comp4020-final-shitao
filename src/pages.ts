@@ -76,6 +76,7 @@ export function wallPage(
       data-can-draw="${alreadyMarked ? "false" : "true"}"
       data-hand-colour="${escape(handColour)}"
       data-since="${since}"
+      data-next-mark-in="${msUntilNextMark}"
     ></script>`,
   );
 }

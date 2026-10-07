@@ -92,118 +92,161 @@
     live?.remove();
   };
 
-  if (canDraw) {
-    // The one pointer drawing. A second finger on a phone is ignored rather
-    // than starting a new gesture over the first, which would orphan the
-    // first stroke's path and mix both fingers into one line.
-    let pointerId = null;
+  // Whether this hand may draw, with the wall's focusability and label to
+  // match (pages.ts renders the same two states on load). The server still
+  // refuses a mark too early; this only decides what the tab offers.
+  const setDrawable = (on) => {
+    canDraw = on;
+    if (on) {
+      svg.setAttribute("tabindex", "0");
+      svg.setAttribute("role", "application");
+      svg.setAttribute(
+        "aria-label",
+        "The shared drawing, one mark per hand. Press Enter or Space to start your mark, arrow keys to draw it, Enter or Space to finish, Escape to cancel.",
+      );
+      status.textContent =
+        "You can add another mark. Draw it with a pointer, or focus the wall and press Enter: arrow keys draw, Enter again finishes.";
+    } else {
+      svg.removeAttribute("tabindex");
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", "The shared drawing, one mark per hand");
+    }
+  };
 
-    svg.addEventListener("pointerdown", (evt) => {
-      if (!canDraw || submitting || drawing) return;
-      pointerId = evt.pointerId;
-      beginGesture(toViewBox(evt));
-      svg.setPointerCapture(evt.pointerId);
-    });
+  // When this hand's 24 hours are up, as this tab's clock reads it. A tab
+  // left open, or a phone back from a night asleep, would otherwise keep
+  // refusing to draw until a reload. A timer covers a tab in view; a
+  // sleeping phone's timers stall, so coming back into view checks too.
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  let reopensAt = Infinity;
+  let reopenTimer;
+  const waitForNextMark = (ms) => {
+    reopensAt = Date.now() + ms;
+    clearTimeout(reopenTimer);
+    reopenTimer = setTimeout(reopenIfDue, ms);
+  };
+  // A timer can fire before the wall clock agrees it's due (the two clocks
+  // drift), so an early one waits out the rest rather than giving up.
+  const reopenIfDue = () => {
+    if (canDraw || submitting || reopensAt === Infinity) return;
+    const left = reopensAt - Date.now();
+    if (left > 0) return waitForNextMark(left);
+    reopensAt = Infinity;
+    setDrawable(true);
+  };
+  if (!canDraw) waitForNextMark(Number(script.dataset.nextMarkIn) || DAY_MS);
 
-    svg.addEventListener("pointermove", (evt) => {
-      if (!drawing || evt.pointerId !== pointerId) return;
-      addPoint(toViewBox(evt));
-    });
+  // The one pointer drawing. A second finger on a phone is ignored rather
+  // than starting a new gesture over the first, which would orphan the
+  // first stroke's path and mix both fingers into one line.
+  let pointerId = null;
 
-    const finish = async () => {
-      if (!drawing) return;
-      drawing = false;
-      if (points.length < 2) {
-        dropLive();
-        return;
-      }
-      const path = pathFrom(points);
-      // Chosen and recorded before the fetch is even issued, so the echo
-      // check below is already armed no matter which I/O completes first.
-      const nonce = crypto.randomUUID();
-      pendingNonce = nonce;
-      submitting = true;
-      status.textContent = "Adding your mark…";
-      try {
-        const res = await fetch("/api/marks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path, nonce }),
-        });
-        if (!res.ok) {
-          const text = await res.text();
-          status.textContent = text || "That mark wasn't accepted.";
-          dropLive();
-          pendingNonce = null;
-          return;
-        }
-        canDraw = false;
-        const { id } = await res.json();
-        seen.add(id);
-        lastId = Math.max(lastId, id);
-        status.textContent =
-          "Your mark is on the wall: the thicker stroke, on top. You can add another in 24 hours.";
-      } catch {
-        status.textContent = "Couldn't reach the wall --- try again.";
+  svg.addEventListener("pointerdown", (evt) => {
+    if (!canDraw || submitting || drawing) return;
+    pointerId = evt.pointerId;
+    beginGesture(toViewBox(evt));
+    svg.setPointerCapture(evt.pointerId);
+  });
+
+  svg.addEventListener("pointermove", (evt) => {
+    if (!drawing || evt.pointerId !== pointerId) return;
+    addPoint(toViewBox(evt));
+  });
+
+  const finish = async () => {
+    if (!drawing) return;
+    drawing = false;
+    if (points.length < 2) {
+      dropLive();
+      return;
+    }
+    const path = pathFrom(points);
+    // Chosen and recorded before the fetch is even issued, so the echo
+    // check below is already armed no matter which I/O completes first.
+    const nonce = crypto.randomUUID();
+    pendingNonce = nonce;
+    submitting = true;
+    status.textContent = "Adding your mark…";
+    try {
+      const res = await fetch("/api/marks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path, nonce }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        status.textContent = text || "That mark wasn't accepted.";
         dropLive();
         pendingNonce = null;
-      } finally {
-        submitting = false;
+        return;
       }
-    };
+      setDrawable(false);
+      waitForNextMark(DAY_MS);
+      const { id } = await res.json();
+      seen.add(id);
+      lastId = Math.max(lastId, id);
+      status.textContent =
+        "Your mark is on the wall: the thicker stroke, on top. You can add another in 24 hours.";
+    } catch {
+      status.textContent = "Couldn't reach the wall --- try again.";
+      dropLive();
+      pendingNonce = null;
+    } finally {
+      submitting = false;
+    }
+  };
 
-    svg.addEventListener("pointerup", (evt) => {
-      if (evt.pointerId === pointerId) finish();
-    });
-    // The system took the touch (an edge swipe, a notification): nobody
-    // finished this stroke, so it's dropped like Escape, not posted.
-    svg.addEventListener("pointercancel", (evt) => {
-      if (!drawing || evt.pointerId !== pointerId) return;
+  svg.addEventListener("pointerup", (evt) => {
+    if (evt.pointerId === pointerId) finish();
+  });
+  // The system took the touch (an edge swipe, a notification): nobody
+  // finished this stroke, so it's dropped like Escape, not posted.
+  svg.addEventListener("pointercancel", (evt) => {
+    if (!drawing || evt.pointerId !== pointerId) return;
+    drawing = false;
+    dropLive();
+  });
+
+  // A pointer is the only way to draw unless this exists: Enter/Space
+  // starts a gesture at the wall's centre, the arrow keys add a point each
+  // in that direction (mirroring pointermove), and Enter/Space again hands
+  // off to the same finish() a pointer gesture uses. Escape cancels before
+  // anything is sent, the same way lifting a pointer after barely moving
+  // does (finish() drops any gesture under two points).
+  const STEP = 30;
+  const ARROW_DELTAS = {
+    ArrowUp: [0, -STEP],
+    ArrowDown: [0, STEP],
+    ArrowLeft: [-STEP, 0],
+    ArrowRight: [STEP, 0],
+  };
+  svg.addEventListener("keydown", (evt) => {
+    if (!canDraw || submitting) return;
+    if (!drawing) {
+      if (evt.key !== "Enter" && evt.key !== " ") return;
+      evt.preventDefault();
+      const vb = svg.viewBox.baseVal;
+      beginGesture([Math.round(vb.x + vb.width / 2), Math.round(vb.y + vb.height / 2)]);
+      return;
+    }
+    if (evt.key in ARROW_DELTAS) {
+      evt.preventDefault();
+      const [dx, dy] = ARROW_DELTAS[evt.key];
+      const [x, y] = points[points.length - 1];
+      addPoint([x + dx, y + dy]);
+      return;
+    }
+    if (evt.key === "Enter" || evt.key === " ") {
+      evt.preventDefault();
+      finish();
+      return;
+    }
+    if (evt.key === "Escape") {
+      evt.preventDefault();
       drawing = false;
       dropLive();
-    });
-
-    // A pointer is the only way to draw unless this exists: Enter/Space
-    // starts a gesture at the wall's centre, the arrow keys add a point each
-    // in that direction (mirroring pointermove), and Enter/Space again hands
-    // off to the same finish() a pointer gesture uses. Escape cancels before
-    // anything is sent, the same way lifting a pointer after barely moving
-    // does (finish() drops any gesture under two points).
-    const STEP = 30;
-    const ARROW_DELTAS = {
-      ArrowUp: [0, -STEP],
-      ArrowDown: [0, STEP],
-      ArrowLeft: [-STEP, 0],
-      ArrowRight: [STEP, 0],
-    };
-    svg.addEventListener("keydown", (evt) => {
-      if (!canDraw || submitting) return;
-      if (!drawing) {
-        if (evt.key !== "Enter" && evt.key !== " ") return;
-        evt.preventDefault();
-        const vb = svg.viewBox.baseVal;
-        beginGesture([Math.round(vb.x + vb.width / 2), Math.round(vb.y + vb.height / 2)]);
-        return;
-      }
-      if (evt.key in ARROW_DELTAS) {
-        evt.preventDefault();
-        const [dx, dy] = ARROW_DELTAS[evt.key];
-        const [x, y] = points[points.length - 1];
-        addPoint([x + dx, y + dy]);
-        return;
-      }
-      if (evt.key === "Enter" || evt.key === " ") {
-        evt.preventDefault();
-        finish();
-        return;
-      }
-      if (evt.key === "Escape") {
-        evt.preventDefault();
-        drawing = false;
-        dropLive();
-      }
-    });
-  }
+    }
+  });
 
   // The newest mark this tab has, so a fresh stream can ask for everything
   // after it. Starts at the last mark the page rendered, so a mark landing
@@ -226,7 +269,8 @@
     appendOwnStroke(mark.path, mark.colour);
     // Drawn from another tab of this hand: this one can't add a second.
     if (canDraw && !submitting) {
-      canDraw = false;
+      setDrawable(false);
+      waitForNextMark(DAY_MS);
       status.textContent =
         "Your mark is on the wall, from another tab: the thicker stroke, on top. You can add another in 24 hours.";
     }
@@ -257,6 +301,8 @@
   // the browser's own retry fires seconds later. Reopen the moment the
   // wall is visible again; the replay fills whatever it missed.
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") connect();
+    if (document.visibilityState !== "visible") return;
+    connect();
+    reopenIfDue();
   });
 })();
