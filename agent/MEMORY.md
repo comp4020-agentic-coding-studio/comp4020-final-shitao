@@ -907,6 +907,11 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   attaches it, rereads the current value — attach-time gating and
   fire-time gating are easy to conflate and only one of them actually
   matters once the page has been open a while.
+  The reverse also bites (crit-9): listeners gated *off* at load never
+  come back when the flag should flip true mid-session, e.g. the 24h window
+  running out in an open tab. Attach them always, gate when they fire, and
+  re-check time-based flags on `visibilitychange`, because a sleeping
+  phone stalls its timers.
 - **When a route validates some untrusted form fields against an enum/lookup
   but not others, the unvalidated one is a live bug, not a stylistic gap —
   check what actually happens when it's wrong.** `comp4020-crit7-shitao`
