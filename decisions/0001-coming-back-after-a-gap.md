@@ -61,6 +61,11 @@ own connections. Another tab of the same hand now paints the mark as
 that hand's own, thicker and on top, and stops offering a second mark.
 No hand id goes to the page.
 
+Coming back the next day to a tab that never closed works the same way. When
+the hand's 24 hours run out, the tab offers a mark again on its own, or the
+moment it's back in view if a sleeping phone stalled the timer. A reload is
+not needed for this either.
+
 ## What it costs
 
 - **A tab asleep for a week gets a week of marks at once.** They all land
