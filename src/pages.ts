@@ -53,8 +53,8 @@ export function wallPage(
   const handColour = hand.colour;
 
   const prompt = alreadyMarked
-    ? `<p id="status">Your mark is already on the wall. You can add another ${untilPhrase(msUntilNextMark)}.</p>`
-    : `<p id="status">Draw one mark with a pointer, or focus the wall and press Enter: arrow keys draw, Enter again finishes.</p>`;
+    ? `<p id="status" role="status">Your mark is already on the wall. You can add another ${untilPhrase(msUntilNextMark)}.</p>`
+    : `<p id="status" role="status">Draw one mark with a pointer, or focus the wall and press Enter: arrow keys draw, Enter again finishes.</p>`;
 
   const svgAttrs = alreadyMarked
     ? `role="img" aria-label="The shared drawing, one mark per hand"`

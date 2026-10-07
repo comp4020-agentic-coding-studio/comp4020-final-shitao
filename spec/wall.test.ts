@@ -291,3 +291,11 @@ it("ships no third-party script or stylesheet", async () => {
     );
   }
 });
+
+it("announces what happens to a mark to assistive technology", async () => {
+  // wall.js rewrites the status line as a mark posts, lands, or is refused;
+  // without a live region a screen reader hears none of it.
+  const html = await (await fetch(new URL("/", baseUrl))).text();
+  const status = new JSDOM(html).window.document.getElementById("status");
+  expect(status?.getAttribute("role")).toBe("status");
+});
