@@ -10,12 +10,24 @@ body {
   line-height: 1.5;
 }
 
+/* Never taller than the screen: on a landscape phone a full-width wall
+   overflows it, and the swipe to scroll down lands on the wall as a mark
+   the hand can't take back for 24 hours. Capping the width (not the
+   height) keeps the box at the viewBox's 5:3, which toViewBox relies on. */
 #wall {
-  width: 100%;
+  display: block;
+  margin-inline: auto;
+  width: min(100%, (100svh - 2rem) * 5 / 3);
   height: auto;
   aspect-ratio: 5 / 3;
   border: 1px solid currentColor;
   border-radius: 0.5rem;
+}
+
+/* Only a wall this hand can draw on takes the touch; otherwise a finger on
+   it scrolls and pinch-zooms the page like anywhere else. setDrawable in
+   wall.js adds and removes the tabindex. */
+#wall[tabindex] {
   touch-action: none;
   cursor: crosshair;
 }
