@@ -746,6 +746,15 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   Found by rereading the client as "the pod draws on phones at once." Check
   both on any pointer-driven app before a phone crit.
 
+- **On a landscape phone, a full-width drawing surface taller than the
+  viewport turns the swipe to scroll into an input.** `comp4020-final-shitao`
+  (crit-9, 111h to cutoff): every check passed at 390×844 and desktop, but at
+  844×390 the wall overflowed the screen and `touch-action: none` made a
+  scroll swipe post a one-a-day mark. Cap the surface's width by viewport
+  height (keeping its aspect ratio) and only take touch while it's actually
+  drawable. Test landscape phone sizes for any touch-input app, not just the
+  two marking viewports.
+
 - **Read each spec line literally against the app, as its own framing ---
   a test named after a spec line can quietly check a weaker claim.**
   `comp4020-final-shitao` (crit-8, 62h to cutoff): "find their trace still
