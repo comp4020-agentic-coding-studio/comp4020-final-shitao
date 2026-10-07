@@ -448,3 +448,18 @@ it("lets a hand draw again when a tab comes back into view after its 24 hours", 
   await settle();
   expect(posted.length).toBe(2);
 });
+
+it("drops a gesture in progress when this hand's other tab posts first", async () => {
+  // Otherwise a keyboard gesture is stuck: keydown refuses everything once
+  // the hand can't draw, Escape included, so the half-drawn stroke stays.
+  const { svg, posted, key, gesture, settle, emitMark } = buildWall({ canDraw: true });
+  key("Enter");
+  key("ArrowRight");
+  emitMark({ path: "M5,5 L6,6", colour: "#123456", mine: true });
+  expect(svg.querySelectorAll(".halo").length).toBe(1);
+  key("Enter");
+  gesture(9, 9, "pointerup");
+  await settle();
+  expect(posted.length).toBe(0);
+  expect(svg.querySelectorAll(".halo").length).toBe(1);
+});

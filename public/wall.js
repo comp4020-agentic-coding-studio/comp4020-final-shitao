@@ -267,8 +267,14 @@
       return;
     }
     appendOwnStroke(mark.path, mark.colour);
-    // Drawn from another tab of this hand: this one can't add a second.
+    // Drawn from another tab of this hand: this one can't add a second, so
+    // a half-drawn stroke goes too. Left in place, a keyboard gesture would
+    // be stuck, since keydown (Escape included) refuses once canDraw is off.
     if (canDraw && !submitting) {
+      if (drawing) {
+        drawing = false;
+        dropLive();
+      }
       setDrawable(false);
       waitForNextMark(DAY_MS);
       status.textContent =
