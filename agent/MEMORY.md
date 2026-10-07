@@ -816,7 +816,10 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   live in `agent-browser` (fresh-hand session, one `Tab` press landed focus
   on the wall since `tabindex="0"` is only present when a hand can actually
   draw) that Escape cancels cleanly and a real gesture still posts right
-  after. General lesson: for any app whose entire interaction surface is one
+  after. Same reread on crit-9 found the status line wall.js rewrites was
+  never a live region (`role="status"`), so screen readers heard no outcome;
+  check JS-updated status text for this alongside keyboard input.
+  General lesson: for any app whose entire interaction surface is one
   pointer-driven element, a dedicated accessibility-framed reread (not
   folded into a race/content/layout pass) is a distinct, apparently
   still-fruitful angle even after many clean verification runs — the standing
