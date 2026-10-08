@@ -93,7 +93,12 @@ it("refuses a second mark from the same hand on the same day", async () => {
     });
 
   expect((await post("M1,1 L2,2")).status).toBe(201);
-  expect((await post("M9,9 L8,8")).status).toBe(429);
+  const refused = await post("M9,9 L8,8");
+  expect(refused.status).toBe(429);
+  // wall.js waits this long before offering the hand a mark again.
+  const retryAfter = Number(refused.headers.get("Retry-After"));
+  expect(retryAfter).toBeGreaterThan(24 * 60 * 60 - 60);
+  expect(retryAfter).toBeLessThanOrEqual(24 * 60 * 60);
 });
 
 it("refuses a same-day double mark even when one request's body is slow to arrive", async () => {

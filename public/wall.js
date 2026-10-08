@@ -210,6 +210,12 @@
       const landed = pendingNonce !== nonce;
       if (!landed && !res.ok) {
         const text = await res.text();
+        // Already marked, from a tab whose echo never reached this one:
+        // stop offering a mark until the server says the wait is up.
+        if (res.status === 429) {
+          setDrawable(false);
+          waitForNextMark(Number(res.headers.get("Retry-After")) * 1000 || DAY_MS);
+        }
         status.textContent = text || "That mark wasn't accepted.";
         dropLive();
         pendingNonce = null;
@@ -225,7 +231,7 @@
       status.textContent =
         "Your mark is on the wall: the thicker stroke, on top. You can add another in 24 hours.";
     } catch {
-      status.textContent = "Couldn't reach the wall --- try again.";
+      status.textContent = "Couldn't reach the wall — try again.";
       dropLive();
       pendingNonce = null;
     } finally {

@@ -53,6 +53,12 @@ function buildWall({
     posted.push(JSON.parse((init as RequestInit).body as string));
     const failure = failures.shift();
     if (failure === "offline") throw new TypeError("Failed to fetch");
+    // A 429 carries the server's own wait, as server.ts sends it.
+    if (failure === 429)
+      return new Response("Your mark is already on the wall. You can add another in an hour.", {
+        status: 429,
+        headers: { "Retry-After": "3600" },
+      });
     if (failure !== undefined) return new Response("", { status: failure });
     if (deferFetch) {
       await new Promise<void>((resolve) => {
@@ -538,4 +544,23 @@ it("gives up on a held mark once the wall stays out of reach", async () => {
   expect(posted.length).toBe(6);
   expect(status.textContent).toMatch(/Couldn't reach the wall/);
   expect(svg.querySelectorAll("path:not(.halo)").length).toBe(0);
+});
+
+it("stops offering a mark the server refused as a second one, until the server's wait is up", async () => {
+  // This hand's other tab posted while this one's stream was down, so no
+  // echo told it; the 429 is the first it hears, and has to be believed.
+  const { svg, posted, stroke, status, settle, runTimers, advanceClock } = buildWall({
+    canDraw: true,
+    failures: [429],
+  });
+  stroke(1, 9);
+  await settle();
+  expect(status.textContent).toMatch(/already on the wall/);
+  expect(svg.hasAttribute("tabindex")).toBe(false);
+  stroke(2, 8);
+  await settle();
+  expect(posted.length).toBe(1);
+  advanceClock(3600 * 1000);
+  runTimers();
+  expect(svg.getAttribute("tabindex")).toBe("0");
 });

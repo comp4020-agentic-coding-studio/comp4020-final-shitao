@@ -199,7 +199,10 @@ const server = createServer(async (req, res) => {
       // separates the two, nothing can interleave here.
       const wait = msUntilNextMark(hand.id);
       if (wait > 0) {
-        res.writeHead(429, { "Content-Type": "text/plain; charset=utf-8" });
+        res.writeHead(429, {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Retry-After": String(Math.ceil(wait / 1000)),
+        });
         res.end(`Your mark is already on the wall. You can add another ${untilPhrase(wait)}.`);
         return;
       }
