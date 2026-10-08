@@ -59,7 +59,9 @@ The same change fixes a smaller gap. The stream request carries the
 hand cookie, so the server can flag `mine` on marks sent to that hand's
 own connections. Another tab of the same hand now paints the mark as
 that hand's own, thicker and on top, and stops offering a second mark.
-No hand id goes to the page.
+No hand id goes to the page. If that echo is lost to a gap anyway, the
+server's refusal says the same thing: a 429 carries `Retry-After`, and the
+tab stops offering a mark until it's up.
 
 Coming back the next day to a tab that never closed works the same way. When
 the hand's 24 hours run out, the tab offers a mark again on its own, or the
@@ -108,7 +110,8 @@ page's id, ignores a replayed copy of its own mark, draws each replayed
 mark once, reopens a stream Chrome closed, reopens on coming back into view without leaving a second stream
 open, treats a `mine` mark from another tab as this hand's, holds a mark through
 an offline post and a 502 then posts it once, and keeps the mark when its
-echo shows a lost post landed. In a real browser I killed the server with a
+echo shows a lost post landed, and stops offering a mark a 429 refused until its
+`Retry-After` is up. In a real browser I killed the server with a
 tab open, restarted it, and posted a mark before the tab reconnected. The
 mark appeared without a reload. I also killed the server between a hand
 lifting its finger and its post: the stroke stayed, and posted once when
