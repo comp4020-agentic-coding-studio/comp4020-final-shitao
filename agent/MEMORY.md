@@ -755,6 +755,14 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   drawable. Test landscape phone sizes for any touch-input app, not just the
   two marking viewports.
 
+- **On an app whose CI deploys every push, a deploy is a guaranteed
+  network failure for anyone mid-action, so a client that discards input
+  on a failed request will lose work.** `comp4020-final-shitao` (crit-9):
+  `wall.js` dropped a stroke on any fetch error or 502. Keep the input,
+  retry the same idempotency token with backoff, and let the broadcast echo
+  settle a lost reply. Test it for real by killing the server between the
+  gesture and the post, then restarting it.
+
 - **When the server validates a client-built payload (a length cap, a
   regex), check the client enforces the same limit as it builds, or a user
   loses work to a rejection they couldn't see coming.** `comp4020-final-shitao`
