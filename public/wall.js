@@ -81,7 +81,17 @@
     svg.append(halo, live);
   };
 
+  // src/server.ts's PATH_RE refuses a path past 2000 segments, so a long
+  // scribble stops growing there rather than being posted and thrown away.
+  const MAX_POINTS = 2001;
+  const LONGEST = "That's as long as a mark goes. Finish it here to add it.";
+
   const addPoint = (point) => {
+    if (points.length >= MAX_POINTS) {
+      // Once, so the live region doesn't announce it on every move.
+      if (status.textContent !== LONGEST) status.textContent = LONGEST;
+      return;
+    }
     points.push(point);
     halo.setAttribute("d", pathFrom(points));
     live.setAttribute("d", pathFrom(points));

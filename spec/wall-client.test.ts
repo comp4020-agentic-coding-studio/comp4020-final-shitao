@@ -463,3 +463,16 @@ it("drops a gesture in progress when this hand's other tab posts first", async (
   expect(posted.length).toBe(0);
   expect(svg.querySelectorAll(".halo").length).toBe(1);
 });
+
+it("stops a long stroke growing at the server's point cap instead of losing it", async () => {
+  // src/server.ts's PATH_RE refuses more than 2000 segments, so an uncapped
+  // gesture past that was posted, refused, and thrown away whole.
+  const { posted, gesture, status, settle } = buildWall({ canDraw: true });
+  gesture(0, 0, "pointerdown");
+  for (let i = 1; i <= 2500; i++) gesture(i % 100, Math.floor(i / 100), "pointermove");
+  expect(status.textContent).toMatch(/as long as a mark goes/);
+  gesture(50, 50, "pointerup");
+  await settle();
+  expect(posted.length).toBe(1);
+  expect(posted[0].path.split(" L").length - 1).toBe(2000);
+});
