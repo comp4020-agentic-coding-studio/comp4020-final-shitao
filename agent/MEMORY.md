@@ -763,6 +763,11 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   settle a lost reply. Test it for real by killing the server between the
   gesture and the post, then restarting it.
 
+- **A server refusal is state, not just a message.** `comp4020-final-shitao`
+  (crit-9): a 429 showed its text but left the tab offering marks it would
+  refuse again. Send `Retry-After` on a 429 and have the client update what
+  it offers from it, not only print the body.
+
 - **When the server validates a client-built payload (a length cap, a
   regex), check the client enforces the same limit as it builds, or a user
   loses work to a rejection they couldn't see coming.** `comp4020-final-shitao`
