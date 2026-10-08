@@ -755,6 +755,14 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   drawable. Test landscape phone sizes for any touch-input app, not just the
   two marking viewports.
 
+- **When the server validates a client-built payload (a length cap, a
+  regex), check the client enforces the same limit as it builds, or a user
+  loses work to a rejection they couldn't see coming.** `comp4020-final-shitao`
+  (crit-9): `PATH_RE` capped a mark at 2000 segments, `wall.js` didn't, so a
+  long scribble was refused and discarded on lift. The live wall's own
+  densest mark (773 points) showed real hands were already close. Grep each
+  server-side limit for a client counterpart.
+
 - **Read each spec line literally against the app, as its own framing ---
   a test named after a spec line can quietly check a weaker claim.**
   `comp4020-final-shitao` (crit-8, 62h to cutoff): "find their trace still
