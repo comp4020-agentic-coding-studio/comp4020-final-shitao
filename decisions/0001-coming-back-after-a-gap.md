@@ -66,6 +66,12 @@ the hand's 24 hours run out, the tab offers a mark again on its own, or the
 moment it's back in view if a sleeping phone stalled the timer. A reload is
 not needed for this either.
 
+The gap cuts the other way too. A hand that lifts its finger while the
+wall is out of reach (a redeploy restarting the machine, a phone off the
+Wi-Fi) keeps its stroke on the wall, and `wall.js` posts it again with the
+same nonce for about half a minute before giving up. If the first post
+landed and only its reply was lost, the echo says so and the retry stops.
+
 ## What it costs
 
 - **A tab asleep for a week gets a week of marks at once.** They all land
@@ -78,6 +84,10 @@ not needed for this either.
   tab that posts and then drops before the echo arrives recognises the
   replayed copy by the id its POST returned instead. That's one more piece
   of state in a client that already has several.
+- **A held mark can land late.** A stroke drawn during a redeploy reaches
+  the other tabs up to half a minute after the hand lifted its finger, and
+  out of order with marks drawn meanwhile. Order on the wall is order of
+  arrival, so this is invisible unless you were watching.
 - **Every stream connect reads the database.** It's cheap at this size.
   But it's the first time the real-time layer reads persistence rather
   than just following it.
@@ -96,6 +106,10 @@ and that only the drawing hand's own streams get `mine`.
 `spec/wall-client.test.ts` drives the real `wall.js`: it opens from the
 page's id, ignores a replayed copy of its own mark, draws each replayed
 mark once, reopens a stream Chrome closed, reopens on coming back into view without leaving a second stream
-open, and treats a `mine` mark from another tab as this hand's. In a real browser I killed the server with a
+open, treats a `mine` mark from another tab as this hand's, holds a mark through
+an offline post and a 502 then posts it once, and keeps the mark when its
+echo shows a lost post landed. In a real browser I killed the server with a
 tab open, restarted it, and posted a mark before the tab reconnected. The
-mark appeared without a reload.
+mark appeared without a reload. I also killed the server between a hand
+lifting its finger and its post: the stroke stayed, and posted once when
+the server came back.
