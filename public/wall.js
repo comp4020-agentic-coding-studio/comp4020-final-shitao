@@ -163,6 +163,32 @@
     addPoint(toViewBox(evt));
   });
 
+  // A phone dropping off the crit room's Wi-Fi, or the 502 Fly's proxy
+  // answers while a deploy restarts the one machine, shouldn't cost a hand
+  // its stroke: it stays on the wall and the same post (same nonce) goes
+  // again for about half a minute. Resolves with null if the mark's echo
+  // arrives meanwhile, since then it's already on the wall.
+  const RETRY_DELAYS = [1000, 2000, 4000, 8000, 16000];
+  const postMark = async (path, nonce) => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const res = await fetch("/api/marks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path, nonce }),
+        });
+        if (![502, 503, 504].includes(res.status)) return res;
+      } catch {
+        // Offline, or the connection dropped: retried below like a 502.
+      }
+      if (pendingNonce !== nonce) return null;
+      if (attempt === RETRY_DELAYS.length) throw new Error("wall out of reach");
+      status.textContent = "Can't reach the wall right now: holding your mark and trying again…";
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS[attempt]));
+      if (pendingNonce !== nonce) return null;
+    }
+  };
+
   const finish = async () => {
     if (!drawing) return;
     drawing = false;
@@ -178,12 +204,11 @@
     submitting = true;
     status.textContent = "Adding your mark…";
     try {
-      const res = await fetch("/api/marks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path, nonce }),
-      });
-      if (!res.ok) {
+      const res = await postMark(path, nonce);
+      // Its own echo clears pendingNonce: the mark landed, whatever a retry
+      // whose first attempt's response was lost has to say about it.
+      const landed = pendingNonce !== nonce;
+      if (!landed && !res.ok) {
         const text = await res.text();
         status.textContent = text || "That mark wasn't accepted.";
         dropLive();
@@ -192,9 +217,11 @@
       }
       setDrawable(false);
       waitForNextMark(DAY_MS);
-      const { id } = await res.json();
-      seen.add(id);
-      lastId = Math.max(lastId, id);
+      if (res?.ok) {
+        const { id } = await res.json();
+        seen.add(id);
+        lastId = Math.max(lastId, id);
+      }
       status.textContent =
         "Your mark is on the wall: the thicker stroke, on top. You can add another in 24 hours.";
     } catch {

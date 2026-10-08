@@ -15,10 +15,15 @@ function buildWall({
   canDraw,
   deferFetch = false,
   nextMarkIn,
+  failures = [],
 }: {
   canDraw: boolean;
   deferFetch?: boolean;
   nextMarkIn?: number;
+  // What the first few posts get instead of a 201, in order: a status code
+  // (Fly's proxy answers 502 while a deploy restarts the machine), or
+  // "offline" for a fetch that never reaches anything.
+  failures?: (number | "offline")[];
 }) {
   const dom = new JSDOM(
     `<!doctype html><body>
@@ -46,6 +51,9 @@ function buildWall({
   let resolveFetch: (() => void) | undefined;
   (window as unknown as { fetch: typeof fetch }).fetch = (async (_url, init) => {
     posted.push(JSON.parse((init as RequestInit).body as string));
+    const failure = failures.shift();
+    if (failure === "offline") throw new TypeError("Failed to fetch");
+    if (failure !== undefined) return new Response("", { status: failure });
     if (deferFetch) {
       await new Promise<void>((resolve) => {
         resolveFetch = resolve;
@@ -475,4 +483,59 @@ it("stops a long stroke growing at the server's point cap instead of losing it",
   await settle();
   expect(posted.length).toBe(1);
   expect(posted[0].path.split(" L").length - 1).toBe(2000);
+});
+
+it("holds a mark through a dropped connection and posts it once the wall is back", async () => {
+  // A phone losing the crit room's Wi-Fi, or the 502 Fly answers while a
+  // deploy restarts the one machine, used to throw the whole stroke away.
+  const { svg, posted, stroke, status, settle, runTimers } = buildWall({
+    canDraw: true,
+    failures: ["offline", 502],
+  });
+  stroke(1, 9);
+  await settle();
+  expect(posted.length).toBe(1);
+  expect(status.textContent).toMatch(/holding your mark/);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
+  runTimers();
+  await settle();
+  runTimers();
+  await settle();
+  expect(posted.length).toBe(3);
+  expect(new Set(posted.map((p) => p.nonce)).size).toBe(1);
+  expect(status.textContent).toContain("the thicker stroke");
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
+});
+
+it("keeps a held mark when its echo shows the first post landed after all", async () => {
+  // The response was lost but the insert committed: the retry will be
+  // refused as a second mark, and must not take the first one down with it.
+  const { svg, posted, stroke, status, settle, runTimers, emitMark } = buildWall({
+    canDraw: true,
+    failures: ["offline", 429],
+  });
+  stroke(1, 9);
+  await settle();
+  emitMark({ path: "M1,1 L9,9", colour: "#123456", mine: true, nonce: posted[0].nonce });
+  runTimers();
+  await settle();
+  expect(posted.length).toBe(1);
+  expect(status.textContent).toContain("the thicker stroke");
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(1);
+});
+
+it("gives up on a held mark once the wall stays out of reach", async () => {
+  const { svg, posted, stroke, status, settle, runTimers } = buildWall({
+    canDraw: true,
+    failures: Array(10).fill("offline"),
+  });
+  stroke(1, 9);
+  for (let i = 0; i < 10; i++) {
+    await settle();
+    runTimers();
+  }
+  await settle();
+  expect(posted.length).toBe(6);
+  expect(status.textContent).toMatch(/Couldn't reach the wall/);
+  expect(svg.querySelectorAll("path:not(.halo)").length).toBe(0);
 });
