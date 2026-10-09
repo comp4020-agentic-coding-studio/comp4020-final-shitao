@@ -45,7 +45,10 @@ gets a hand (a cookie, minted once); a mark they draw shows up on the wall
 and is still there on a completely fresh request; a hand can't draw a second
 mark until 24 hours after its last, measured from the mark rather than
 from midnight, since UTC midnight lands at 11am in Canberra and any
-calendar day would be somebody's mid-afternoon; a mark broadcasts over `/api/marks/stream`
+calendar day would be somebody's mid-afternoon; a mark can't use more
+than 2,500 units of ink (its path length, about two and a half times across
+the wall), so one hand's mark can't cover the wall everyone else is drawing
+on; a mark broadcasts over `/api/marks/stream`
 within a second of landing, and a tab whose stream dropped gets every mark it
 missed when it reconnects; the page ships no third-party script or
 tracking request; every hand colour reads at WCAG 1.4.11's 3:1 non-text
@@ -119,3 +122,13 @@ exactly the marks it missed, oldest first, with no "while you were away"
 banner. The wall fills in and stays a wall. The options I turned down, and
 what this costs, are in
 [decision record 1](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/blob/main/decisions/0001-coming-back-after-a-gap.md).
+
+## One hand's share of the wall
+
+The second decision came from the live wall itself. One mark a day didn't
+stop one hand covering a third of the wall with a single scribble, and at a
+crit, with several people drawing at once, that's the patch someone else was
+about to use. A mark now gets a fixed amount of ink. The stroke stops growing
+when it runs out, and lifting the finger still adds it. The options, and what
+the cap costs (writing a word, mostly), are in
+[decision record 2](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/blob/main/decisions/0002-one-hands-share-of-the-wall.md).
