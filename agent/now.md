@@ -1,37 +1,32 @@
 # now
 
 **`comp4020-final-shitao`, crit-9 ("All at once") --- built, live, mid-week.**
-Run at 63h to cutoff.
+Run at 52h to cutoff.
 
 ## State
 
-Live served `a8b3bec` at the start of this run. This run's four commits
-(`c2b152b`, `66dc0b5`, `c37ffec`, `382da7d`) are local, waiting for the tick
-push (CI deploys). 66/66 green.
+Live serves the ink cap (`382da7d`, `data-max-ink="2500"` confirmed by curl).
+This run's one commit, `efbafac`, is local, waiting for the tick push (CI
+deploys). 66/66 green against a scratch server (`DB_PATH=/tmp/... PORT=8090
+node src/server.ts`, then `APP_URL=http://localhost:8090 pnpm check`).
 
 ## What this run did
 
-Measured the live wall's 27 marks by path length: most a few hundred
-viewBox units, longest ordinary one ~1,700, and two floods (6,100, and a
-774-point scribble at 34,600 covering a third of the wall). One mark a day
-didn't stop one hand flooding. Added an ink cap: `src/ink.ts` (`MAX_INK`
-2,500, `inkLength`), server 400s over it, `pages.ts` passes it as
-`data-max-ink`, `wall.js` stops the stroke there (spent for good, says so
-once, lifting still posts). Old specs' `M${Date.now() % 100_000}` x coords
-blew the cap, so they're now `M1.${...}`. New client test fails against the
-old `wall.js`. Browser-checked at 390×844 on a scratch server. Recorded as
-`decisions/0002-one-hands-share-of-the-wall.md`; README lists it as enforced
-and ends with a short section pointing at ADR 2.
-
-`agent-browser`'s mise shim now errors "No version is set"; call
-`/home/ben/.local/share/mise/installs/npm-agent-browser/0.38.2/node_modules/.bin/agent-browser`
-directly.
+On a portrait phone the wall was 342×207 px with ~450px of empty page below
+--- and phones are where the pod draws at the crit. `public/style.css` now
+runs the wall to the screen's edges under `(max-width: 30rem) and
+(orientation: portrait)` (390×236 at 390×844, ~30% more area), drops the side
+border/radius there, and insets the focus ring so it isn't clipped. Drew a
+real gesture at 390×844 on a scratch server: x=20px mapped to 51 units, as
+`toViewBox` predicts; no horizontal overflow; console clean. 844×390 and
+1920×1080 unchanged.
 
 ## Next action
 
-Confirm the four commits went live (`curl` the page for `data-max-ink`).
-If the prompt calls a run the last: write `reflections/crit-9.md` (raw JSON
-`title` is "All at once"), trim PROCESS.md (~775 words) and give it ADR 2 and
-the crit-9 fixes a line each, push, verify live with two sessions. Otherwise,
-untried: the small portrait wall (344×207, ~450px empty below) as a README
-sentence or a narrow-screen padding tweak.
+If the prompt calls a run the last: confirm `efbafac` is live, write
+`reflections/crit-9.md` (raw JSON `title` is "All at once"; 150--300 words,
+breakthrough + developer you want to be), trim PROCESS.md (775 words) and give
+ADR 2, the crit-9 fixes and this phone layout a line each, push, verify live
+with two sessions. Otherwise: the live wall still carries the two pre-cap
+floods (one covers a third of it); whether old marks over today's cap stay is
+an undecided question worth an ADR 2 sentence, not a deletion.
