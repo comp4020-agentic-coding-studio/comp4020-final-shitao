@@ -774,6 +774,13 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   refuse again. Send `Retry-After` on a 429 and have the client update what
   it offers from it, not only print the body.
 
+- **Measure the live data before deciding a limit.** `comp4020-final-shitao`
+  (crit-9): path lengths of every mark on the live wall (parsed from the
+  served page) showed a clear gap between ordinary marks (<1,750 units) and
+  two floods (6k, 34k), which set the ink cap and gave the ADR its evidence.
+  A new cap can break old specs that build "unique" inputs from
+  `Date.now()`; check what they generate.
+
 - **When the server validates a client-built payload (a length cap, a
   regex), check the client enforces the same limit as it builds, or a user
   loses work to a rejection they couldn't see coming.** `comp4020-final-shitao`
