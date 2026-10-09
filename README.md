@@ -33,9 +33,9 @@ that everyone can flood stops being a wall anyone wants to add to.
 No text. No titles, no captions, no usernames you type in --- a mark is a
 gesture, not a post, and a gesture can't be unkind in the way a sentence can.
 No accounts: identity is a browser cookie, so "coming back" means the same
-browser, not a login you can carry between devices (yet --- that trade-off
-is worth revisiting once more than one hand at a time is actually drawing on
-it, in the crit after this one). No moderation queue: the constraint is
+browser, not a login you can carry between devices. That costs a hand its
+own marks when it changes phones, and I'd rather pay that than add the one
+thing the rest of this list refuses. No moderation queue: the constraint is
 upstream, in what a mark is even allowed to be.
 
 ## What's enforced, and what's judged
@@ -88,14 +88,13 @@ mechanism for the job. One in-memory list of open connections on the one Fly
 machine is enough: `fly.toml` pins this app to a single machine with one
 volume, so there's no second process an event could fail to reach.
 
-This is still proof of life plus one layer, not the finished app: one hand,
-one mark a day, now watchable live. One question I could actually test this
-week: a stranger's first visit renders every mark drawn before they arrived
-in the same request that serves the page --- no "here's what's new" banner,
-no separate load for history versus live --- and only marks made while
-they're actually looking stream in over `/api/marks/stream`. Two tabs open at
-once, one drawing while the other watched with no reload, confirmed it: the
-wall reads as a wall, not an activity feed.
+The first thing I tested once the stream was in: a stranger's first visit
+renders every mark drawn before they arrived in the same request that
+serves the page --- no "here's what's new" banner, no separate load for
+history versus live --- and only marks made while they're actually looking
+stream in over `/api/marks/stream`. Two tabs open at once, one drawing
+while the other watched with no reload, confirmed it: the wall reads as a
+wall, not an activity feed.
 
 I also drove three separate hands (three cookie jars, so three real identities,
 not one browser tab role-playing) through the same wall at once: one hand
@@ -109,7 +108,7 @@ several hands' strokes on it. What I haven't tested, because it needs real
 people finding this at the same time rather than hands I drove myself, is
 whether the one-mark-a-day pace still *feels* right once more than a couple
 of hands are drawing in the same hour --- the mechanics hold up; whether the
-pace does is still a question for the crit after this one.
+pace does is a question for a pod on their own phones, not for hands I drive.
 
 ## Coming back after a gap
 
