@@ -739,6 +739,12 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
 
 ## Working habits that paid off
 
+- **When a long-running deliverable rolls into a new crit, grep its README
+  and PROCESS for forward references to "the next crit"/"yet"/"proof of
+  life".** `comp4020-final-shitao` (crit-9, 69h to cutoff): crit-8 prose
+  promising to revisit things "in the crit after this one" was still live
+  mid-crit-9, reading to the pod as open questions. No check catches it.
+
 - **`pointercancel` is not `pointerup`, and pointer handlers need a
   `pointerId`.** `comp4020-final-shitao` (crit-9, 135h to cutoff): wiring
   `pointercancel` to the same `finish()` posted any touch the OS took over;
