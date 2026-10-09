@@ -46,7 +46,7 @@ it("a returning hand can tell its own mark from everyone else's", async () => {
 
   // Unique per run: the app under test keeps its database between runs, and
   // an identical path drawn by an earlier run's hand would match first.
-  const path = `M${Date.now() % 100_000},12 L13,14 L15,16`;
+  const path = `M1.${Date.now() % 100_000},12 L13,14 L15,16`;
   const post = await fetch(new URL("/api/marks", baseUrl), {
     method: "POST",
     headers: { "Content-Type": "application/json", Cookie: mine },
@@ -57,7 +57,7 @@ it("a returning hand can tell its own mark from everyone else's", async () => {
   const later = await fetch(new URL("/api/marks", baseUrl), {
     method: "POST",
     headers: { "Content-Type": "application/json", Cookie: other },
-    body: JSON.stringify({ path: `M${Date.now() % 100_000},20 L21,22` }),
+    body: JSON.stringify({ path: `M1.${Date.now() % 100_000},20 L21,22` }),
   });
   expect(later.status).toBe(201);
 
@@ -161,6 +161,26 @@ it("rejects a mark that isn't a plain stroke path", async () => {
   expect(res.status).toBe(400);
 });
 
+it("refuses a mark that uses more ink than a mark gets, and keeps one that doesn't", async () => {
+  const post = async (path: string) => {
+    const cookie = cookieFrom(await fetch(new URL("/", baseUrl)));
+    return fetch(new URL("/api/marks", baseUrl), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ path }),
+    });
+  };
+  // Three times across the wall's width is 2,700 units of ink, over
+  // src/ink.ts's 2,500; twice across is 1,800, under it.
+  const flood = "M50,300 L950,300 L50,300 L950,300";
+  const refused = await post(flood);
+  expect(refused.status).toBe(400);
+  expect(await (await fetch(new URL("/", baseUrl))).text()).not.toContain(flood);
+
+  const kept = await post("M50,310 L950,310 L50,310");
+  expect(kept.status).toBe(201);
+});
+
 interface MarkEvent {
   id: number;
   path: string;
@@ -236,8 +256,8 @@ it("replays the marks a reconnecting tab missed, from its Last-Event-ID", async 
   // with exactly what landed while it was gone, in order, and nothing twice.
   const a = cookieFrom(await fetch(new URL("/", baseUrl)));
   const b = cookieFrom(await fetch(new URL("/", baseUrl)));
-  const first = await postMark(a, `M${Date.now() % 100_000},30 L31,32`);
-  const second = await postMark(b, `M${Date.now() % 100_000},33 L34,35`);
+  const first = await postMark(a, `M1.${Date.now() % 100_000},30 L31,32`);
+  const second = await postMark(b, `M1.${Date.now() % 100_000},33 L34,35`);
 
   const stream = await openStream("", { "Last-Event-ID": String(first - 1) });
   const replayed = [await stream.next(), await stream.next()];
@@ -254,7 +274,7 @@ it("first connects from the last mark the page rendered, so nothing lands in bet
   );
 
   // Lands after the render but before this stream exists.
-  const id = await postMark(cookie, `M${Date.now() % 100_000},40 L41,42`);
+  const id = await postMark(cookie, `M1.${Date.now() % 100_000},40 L41,42`);
   const stream = await openStream(`?since=${since}`);
   const replayed = [];
   for (;;) {
@@ -275,7 +295,7 @@ it("tells only the drawing hand's own streams that a mark is theirs", async () =
   const [toMine, toOther] = await Promise.all([
     asMine.next(),
     asOther.next(),
-    postMark(mine, `M${Date.now() % 100_000},50 L51,52`),
+    postMark(mine, `M1.${Date.now() % 100_000},50 L51,52`),
   ]);
   expect(toMine.mine).toBe(true);
   expect(toOther.mine).toBe(false);

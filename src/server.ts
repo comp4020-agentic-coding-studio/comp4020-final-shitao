@@ -10,6 +10,7 @@ import {
   msUntilNextMark,
   type Mark,
 } from "./db.ts";
+import { inkLength, MAX_INK } from "./ink.ts";
 import { colourFor, nameFor, newHandId, parseHandCookie, setHandCookie } from "./identity.ts";
 import { readmePage, untilPhrase, wallPage } from "./pages.ts";
 
@@ -181,6 +182,13 @@ const server = createServer(async (req, res) => {
       if (typeof path !== "string" || !PATH_RE.test(path)) {
         res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
         res.end("That doesn't look like a mark.");
+        return;
+      }
+      // A mark is one gesture, not a fill: past MAX_INK one hand's mark
+      // covers the wall everyone else is drawing on (decisions/0002).
+      if (inkLength(path) > MAX_INK) {
+        res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end("That mark uses more ink than a mark gets.");
         return;
       }
       // An opaque, client-chosen token so a tab can recognise its own mark

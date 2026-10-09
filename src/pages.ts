@@ -1,5 +1,6 @@
 import { marked } from "marked";
 import type { Mark } from "./db.ts";
+import { MAX_INK } from "./ink.ts";
 
 const escape = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -77,6 +78,7 @@ export function wallPage(
       data-hand-colour="${escape(handColour)}"
       data-since="${since}"
       data-next-mark-in="${msUntilNextMark}"
+      data-max-ink="${MAX_INK}"
     ></script>`,
   );
 }
