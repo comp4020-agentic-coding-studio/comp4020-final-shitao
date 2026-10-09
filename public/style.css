@@ -24,6 +24,23 @@ body {
   border-radius: 0.5rem;
 }
 
+/* A portrait phone is where most hands draw, and the body's padding takes
+   an eighth of its width from a wall that's already the smallest thing on
+   the page. Run the wall to the screen's edges there instead. */
+@media (max-width: 30rem) and (orientation: portrait) {
+  #wall {
+    width: calc(100% + 3rem);
+    margin-inline: -1.5rem;
+    border-inline: none;
+    border-radius: 0;
+  }
+
+  /* The ring would fall off the screen's edges outside the wall. */
+  #wall:focus-visible {
+    outline-offset: -3px;
+  }
+}
+
 /* Only a wall this hand can draw on takes the touch; otherwise a finger on
    it scrolls and pinch-zooms the page like anywhere else. setDrawable in
    wall.js adds and removes the tabindex. */
