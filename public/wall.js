@@ -73,6 +73,7 @@
   const beginGesture = (point) => {
     drawing = true;
     points = [point];
+    ink = 0;
     halo = document.createElementNS("http://www.w3.org/2000/svg", "path");
     halo.setAttribute("class", "halo");
     live = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -81,17 +82,31 @@
     svg.append(halo, live);
   };
 
-  // src/server.ts's PATH_RE refuses a path past 2000 segments, so a long
-  // scribble stops growing there rather than being posted and thrown away.
+  // src/server.ts refuses a path past 2000 segments, or longer than the ink
+  // a mark gets (src/ink.ts, which the page passes in), so a long scribble
+  // stops growing at either rather than being posted and thrown away.
   const MAX_POINTS = 2001;
+  const MAX_INK = Number(script.dataset.maxInk) || Infinity;
   const LONGEST = "That's as long as a mark goes. Finish it here to add it.";
+  const INKLESS = "That's all the ink a mark gets. Finish it here to add it.";
+  let ink = 0;
+
+  // Once, so the live region doesn't announce it on every move.
+  const announce = (text) => {
+    if (status.textContent !== text) status.textContent = text;
+  };
 
   const addPoint = (point) => {
-    if (points.length >= MAX_POINTS) {
-      // Once, so the live region doesn't announce it on every move.
-      if (status.textContent !== LONGEST) status.textContent = LONGEST;
-      return;
+    if (points.length >= MAX_POINTS) return announce(LONGEST);
+    const [x, y] = points[points.length - 1];
+    const step = Math.hypot(point[0] - x, point[1] - y);
+    if (ink + step > MAX_INK) {
+      // Spent for good: a wiggle the leftover ink could still afford would
+      // keep growing a stroke the status line has just called finished.
+      ink = Infinity;
+      return announce(INKLESS);
     }
+    ink += step;
     points.push(point);
     halo.setAttribute("d", pathFrom(points));
     live.setAttribute("d", pathFrom(points));

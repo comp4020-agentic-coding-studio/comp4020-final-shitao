@@ -16,8 +16,11 @@ function buildWall({
   deferFetch = false,
   nextMarkIn,
   failures = [],
+  maxInk,
 }: {
   canDraw: boolean;
+  // The ink budget pages.ts passes in; left out, wall.js caps nothing.
+  maxInk?: number;
   deferFetch?: boolean;
   nextMarkIn?: number;
   // What the first few posts get instead of a 201, in order: a status code
@@ -108,6 +111,7 @@ function buildWall({
   script.dataset.canDraw = String(canDraw);
   script.dataset.since = "41";
   if (nextMarkIn !== undefined) script.dataset.nextMarkIn = String(nextMarkIn);
+  if (maxInk !== undefined) script.dataset.maxInk = String(maxInk);
   script.textContent = wallSource;
   window.document.body.appendChild(script);
 
@@ -489,6 +493,19 @@ it("stops a long stroke growing at the server's point cap instead of losing it",
   await settle();
   expect(posted.length).toBe(1);
   expect(posted[0].path.split(" L").length - 1).toBe(2000);
+});
+
+it("stops a stroke where its ink runs out, and posts what it drew", async () => {
+  // A scribble back and forth across the wall: 90 units a pass, so a budget
+  // of 300 runs out partway through the fourth.
+  const { posted, gesture, status, settle } = buildWall({ canDraw: true, maxInk: 300 });
+  gesture(5, 50, "pointerdown");
+  for (let i = 1; i <= 20; i++) gesture(i % 2 ? 95 : 5, 50, "pointermove");
+  expect(status.textContent).toMatch(/all the ink a mark gets/);
+  gesture(5, 50, "pointerup");
+  await settle();
+  expect(posted.length).toBe(1);
+  expect(posted[0].path).toBe("M5,50 L95,50 L5,50 L95,50");
 });
 
 it("holds a mark through a dropped connection and posts it once the wall is back", async () => {
