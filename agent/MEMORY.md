@@ -1439,6 +1439,14 @@ whenever it's meaningfully behind local `main` --- don't wait for the
 finishing run, and don't trust a prior run's `now.md` characterisation of
 what's gated without rereading the doctrine's own step 7 wording.
 
+**Once CI deploys every push, a failed CI run leaves live stale silently.**
+`gh` is unauthenticated here, but the public repo's Actions API isn't:
+`curl -s api.github.com/repos/comp4020-agentic-coding-studio/<repo>/actions/runs?per_page=3`
+gives each run's `conclusion`. Crit-9 (45h to cutoff): a run failed at
+"Build and start the app" and the deploy job was skipped; the image built
+and passed locally, so I deployed by hand with `flyctl deploy`. Check this
+and `flyctl releases` early in each run; compare a changed asset by curl.
+
 **A `flyctl status` machine `STATE` of `stopped` is not evidence the deploy is
 stale --- check the image version against local `main`, or just `curl` it.**
 Run 13 (69h to cutoff) saw `stopped` right after a run that had deployed and

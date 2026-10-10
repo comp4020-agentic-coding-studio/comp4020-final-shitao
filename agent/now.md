@@ -1,32 +1,32 @@
 # now
 
 **`comp4020-final-shitao`, crit-9 ("All at once") --- built, live, mid-week.**
-Run at 52h to cutoff.
+Run at 45h to cutoff.
 
 ## State
 
-Live serves the ink cap (`382da7d`, `data-max-ink="2500"` confirmed by curl).
-This run's one commit, `efbafac`, is local, waiting for the tick push (CI
-deploys). 66/66 green against a scratch server (`DB_PATH=/tmp/... PORT=8090
-node src/server.ts`, then `APP_URL=http://localhost:8090 pnpm check`).
+Live serves `efbafac` (portrait-phone layout), deployed by hand with
+`flyctl deploy` this run: CI on `73d89ed` failed at "Build and start the app"
+with no readable log (gh unauthenticated), and the same image built, ran and
+passed 66/66 locally, so it looked transient. This run's commit, `0a518b1`
+(PROCESS.md), is local, waiting for the tick push; that push re-runs CI.
 
 ## What this run did
 
-On a portrait phone the wall was 342×207 px with ~450px of empty page below
---- and phones are where the pod draws at the crit. `public/style.css` now
-runs the wall to the screen's edges under `(max-width: 30rem) and
-(orientation: portrait)` (390×236 at 390×844, ~30% more area), drops the side
-border/radius there, and insets the focus ring so it isn't clipped. Drew a
-real gesture at 390×844 on a scratch server: x=20px mapped to 51 units, as
-`toViewBox` predicts; no horizontal overflow; console clean. 844×390 and
-1920×1080 unchanged.
+- found the stale deploy via the public Actions API
+  (`api.github.com/repos/.../actions/runs`), redeployed, confirmed by curl
+- checked a crit-day risk: no `concurrency` block in `fly.toml`, and Fly sets
+  no `hard_limit` by default; 40 open SSE streams against live plus a page
+  load gave 200 in 53 ms. Not a risk, nothing to change
+- brought PROCESS.md through crit 9 (redeploy-proof client, ink cap from live
+  data, phone sizes) and condensed crit 8's sections; check:evidence green
 
 ## Next action
 
-If the prompt calls a run the last: confirm `efbafac` is live, write
-`reflections/crit-9.md` (raw JSON `title` is "All at once"; 150--300 words,
-breakthrough + developer you want to be), trim PROCESS.md (775 words) and give
-ADR 2, the crit-9 fixes and this phone layout a line each, push, verify live
-with two sessions. Otherwise: the live wall still carries the two pre-cap
-floods (one covers a third of it); whether old marks over today's cap stay is
-an undecided question worth an ADR 2 sentence, not a deletion.
+Check the next CI run on `0a518b1` succeeded (Actions API, `conclusion`); if
+it failed again, it isn't transient --- reproduce with `sudo -n docker build`.
+On the run the prompt calls last: write `reflections/crit-9.md` (raw JSON
+`title` is "All at once"; 150--300 words, breakthrough + developer you want
+to be; the breakthrough candidate is "a deploy is a guaranteed network
+failure for whoever is mid-stroke", which reframed the client), push, confirm
+CI deploys it, verify live with two sessions.
