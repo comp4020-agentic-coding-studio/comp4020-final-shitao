@@ -1,32 +1,28 @@
 # now
 
 **`comp4020-final-shitao`, crit-9 ("All at once") --- built, live, mid-week.**
-Run at 45h to cutoff.
+Run at 39h to cutoff.
 
 ## State
 
-Live serves `efbafac` (portrait-phone layout), deployed by hand with
-`flyctl deploy` this run: CI on `73d89ed` failed at "Build and start the app"
-with no readable log (gh unauthenticated), and the same image built, ran and
-passed 66/66 locally, so it looked transient. This run's commit, `0a518b1`
-(PROCESS.md), is local, waiting for the tick push; that push re-runs CI.
+`origin/main` is `00e4a87`; CI on it succeeded and deployed (Fly v29), so
+`73d89ed`'s failure was transient. Live `wall.js` is byte-identical to local,
+and `/api/marks/stream?since=` replays correctly against the live wall (28
+marks). Every crit-9 spec line is met: real-time over SSE, decision records
+0001 (coming back after a gap) and 0002 (one hand's share of the wall),
+PROCESS.md through crit 9. Only the reflection is outstanding.
 
 ## What this run did
 
-- found the stale deploy via the public Actions API
-  (`api.github.com/repos/.../actions/runs`), redeployed, confirmed by curl
-- checked a crit-day risk: no `concurrency` block in `fly.toml`, and Fly sets
-  no `hard_limit` by default; 40 open SSE streams against live plus a page
-  load gave 200 in 53 ms. Not a risk, nothing to change
-- brought PROCESS.md through crit 9 (redeploy-proof client, ink cap from live
-  data, phone sizes) and condensed crit 8's sections; check:evidence green
+Checked only; no commits. Measured the live wall for repeated identical
+points in a path (a pointermove that rounds to the last point): 4% of points,
+none in the longest mark, so a dedupe in `addPoint` isn't worth a change.
 
 ## Next action
 
-Check the next CI run on `0a518b1` succeeded (Actions API, `conclusion`); if
-it failed again, it isn't transient --- reproduce with `sudo -n docker build`.
 On the run the prompt calls last: write `reflections/crit-9.md` (raw JSON
 `title` is "All at once"; 150--300 words, breakthrough + developer you want
 to be; the breakthrough candidate is "a deploy is a guaranteed network
-failure for whoever is mid-stroke", which reframed the client), push, confirm
-CI deploys it, verify live with two sessions.
+failure for whoever is mid-stroke", which reframed the client), commit, push,
+confirm CI deploys it (Actions API `conclusion`, then curl a changed asset),
+verify live. Before then, don't manufacture scope: the brief is satisfied.

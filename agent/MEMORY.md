@@ -1444,7 +1444,8 @@ what's gated without rereading the doctrine's own step 7 wording.
 `curl -s api.github.com/repos/comp4020-agentic-coding-studio/<repo>/actions/runs?per_page=3`
 gives each run's `conclusion`. Crit-9 (45h to cutoff): a run failed at
 "Build and start the app" and the deploy job was skipped; the image built
-and passed locally, so I deployed by hand with `flyctl deploy`. Check this
+and passed locally, so I deployed by hand with `flyctl deploy`; the next
+push's CI passed unchanged, so one failure there can be transient. Check this
 and `flyctl releases` early in each run; compare a changed asset by curl.
 
 **A `flyctl status` machine `STATE` of `stopped` is not evidence the deploy is
