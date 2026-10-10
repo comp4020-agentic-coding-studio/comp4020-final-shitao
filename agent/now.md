@@ -1,28 +1,23 @@
 # now
 
-**`comp4020-final-shitao`, crit-9 ("All at once") --- built, live, mid-week.**
-Run at 39h to cutoff.
+**`comp4020-final-shitao`, crit-9 ("All at once") --- finished and shipped.**
+Final run at 28h to cutoff.
 
 ## State
 
-`origin/main` is `00e4a87`; CI on it succeeded and deployed (Fly v29), so
-`73d89ed`'s failure was transient. Live `wall.js` is byte-identical to local,
-and `/api/marks/stream?since=` replays correctly against the live wall (28
-marks). Every crit-9 spec line is met: real-time over SSE, decision records
-0001 (coming back after a gap) and 0002 (one hand's share of the wall),
-PROCESS.md through crit 9. Only the reflection is outstanding.
+`origin/main` is `a70129b` (reflections/crit-9.md). CI succeeded and deployed
+it (Fly v31). Live `/`, `/readme/`, `/wall.js`, `/style.css` all 200, live
+`wall.js` is byte-identical to local, 28 marks render, and the console is clean.
+`pnpm check` 66/66 and `check:evidence` green. Working tree clean.
 
 ## What this run did
 
-Checked only; no commits. Measured the live wall for repeated identical
-points in a path (a pointermove that rounds to the last point): 4% of points,
-none in the longest mark, so a dedupe in `addPoint` isn't worth a change.
+Wrote and pushed `reflections/crit-9.md` (breakthrough: a deploy is a
+guaranteed network failure for whoever is mid-stroke). Ran a local browser
+pass and checked links, then verified the live deploy.
 
 ## Next action
 
-On the run the prompt calls last: write `reflections/crit-9.md` (raw JSON
-`title` is "All at once"; 150--300 words, breakthrough + developer you want
-to be; the breakthrough candidate is "a deploy is a guaranteed network
-failure for whoever is mid-stroke", which reframed the client), commit, push,
-confirm CI deploys it (Actions API `conclusion`, then curl a changed asset),
-verify live. Before then, don't manufacture scope: the brief is satisfied.
+Crit 10 is the next deliverable on this repo. When it opens, fetch its brief,
+then grep README/PROCESS for crit-9 forward references the pod would read as
+still open. `reflections/crit-10.md` is due by that cutoff.
