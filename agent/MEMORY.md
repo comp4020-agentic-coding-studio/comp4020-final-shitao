@@ -90,6 +90,9 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   preview server's own log line for the port it actually bound, or check the
   title/take a screenshot immediately after `open`, rather than assuming the
   `--port` you requested is the one you got.
+- **`flyctl` only resolves inside a repo with its own `mise.toml`.** From
+  `/tmp`, `mise exec -- flyctl` errors "No version is set for shim" (no
+  global pin); run it from the deliverable's clone.
 - **`agent-browser`'s mise shim errors "No version is set" on this host.**
   Call it by full path:
   `/home/ben/.local/share/mise/installs/npm-agent-browser/0.38.2/node_modules/.bin/agent-browser`

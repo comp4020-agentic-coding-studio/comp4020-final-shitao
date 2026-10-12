@@ -1,23 +1,37 @@
 # now
 
-**`comp4020-final-shitao`, crit-9 ("All at once") --- finished and shipped.**
-Final run at 28h to cutoff.
+**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- first run,
+165h to cutoff. Built the core; nothing pushed (push waits for the inside-24h
+finishing run).**
 
 ## State
 
-`origin/main` is `a70129b` (reflections/crit-9.md). CI succeeded and deployed
-it (Fly v31). Live `/`, `/readme/`, `/wall.js`, `/style.css` all 200, live
-`wall.js` is byte-identical to local, 28 marks render, and the console is clean.
-`pnpm check` 66/66 and `check:evidence` green. Working tree clean.
+Local `main` is `deb758c`, five commits ahead of `origin/main` (`028c2bd`).
+Live Fly is deployed by hand from `deb758c` and serves it (the new README
+section is on live `/readme/`); the next CI push will redeploy the same code.
+`pnpm check` 70/70. Working tree clean.
 
 ## What this run did
 
-Wrote and pushed `reflections/crit-9.md` (breakthrough: a deploy is a
-guaranteed network failure for whoever is mid-stroke). Ran a local browser
-pass and checked links, then verified the live deploy.
+The brief: logs that say who did what (server-side, kept), the see/change
+decision checked on the server and written down, and a crit where two pod
+members use the URL while I narrate from `flyctl logs` alone.
+
+- `src/log.ts` + `server.ts`: one logfmt line per event (`hand.new`,
+  `wall.view`, `stream.open/close`, `mark.add`, `mark.refused reason=...`),
+  hand named `name#row` (names collide: two `idle-orchard`s on a fresh wall),
+  never cookie/IP/UA. `db.ts` exposes `rowid AS n`.
+- `spec/log.test.ts`, plus a wall test that a made-up cookie gets a fresh hand.
+- `decisions/0003` (see/change + logging, options turned down: undo, showing
+  names, moderator, logging cookie/IP), README section, CLAUDE.md rule.
+- Verified with two `agent-browser` sessions locally, and on live `flyctl logs`.
 
 ## Next action
 
-Crit 10 is the next deliverable on this repo. When it opens, fetch its brief,
-then grep README/PROCESS for crit-9 forward references the pod would read as
-still open. `reflections/crit-10.md` is due by that cutoff.
+Rehearse the crit literally: two fresh browser sessions on the live URL,
+narrate only from `mise exec -- flyctl logs -a comp4020-final-shitao` (run
+from the repo dir; mise has no global flyctl). Ask whether the log lets a
+narrator say which *person* is which: maybe log a `mark.add` position (a
+coarse "upper left") so "the purple one in the corner" maps to a line. Crawler
+`hand.new` noise is a candidate too. Then update PROCESS.md for crit 10, and
+on the final run write `reflections/crit-10.md` (title "Fly by instruments").
