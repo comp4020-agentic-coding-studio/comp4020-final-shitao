@@ -132,3 +132,27 @@ about to use. A mark now gets a fixed amount of ink. The stroke stops growing
 when it runs out, and lifting the finger still adds it. The options, and what
 the cap costs (writing a word, mostly), are in
 [decision record 2](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/blob/main/decisions/0002-one-hands-share-of-the-wall.md).
+
+## What a hand may see and change
+
+A hand sees every mark and its colour, and which marks are its own, and
+nothing about whose the others are. It can add one mark a day within its ink,
+and it can't take any mark back, its own included: undo would turn one
+gesture a day into as many drafts as it likes, and a wall that loses marks
+breaks the promise that yours is still there tomorrow. The server decides all
+of this from the cookie, whatever the page does. A cookie the wall doesn't
+know gets a new hand, never the one it names.
+
+The server logs what each hand does, one line per event, so the wall can be
+read from `flyctl logs` without opening it:
+
+```
+hand.new hand=curious-creek#1 colour=#cc4a28
+mark.add hand=curious-creek#1 mark=1 colour=#cc4a28 ink=160 points=3 tabs_told=2
+mark.refused hand=restless-lantern#2 reason=too-soon next_in_h=23.4
+```
+
+A hand appears by the name the server gave it and its row number, never by
+its cookie, which is the hand's only credential, and never by IP. What I
+turned down, and what it costs (a private window is a new hand), are in
+[decision record 3](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/blob/main/decisions/0003-what-a-hand-may-see-and-change.md).
