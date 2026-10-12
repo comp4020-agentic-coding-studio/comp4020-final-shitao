@@ -33,6 +33,14 @@ The logs name a hand as `name#row` (`idle-orchard#7`), one line per event:
 is there because names collide: the first test run against a fresh wall gave
 `idle-orchard` to hands 1 and 7.
 
+A mark is logged by what the room can see, not by its hex: a colour word
+(`colour=sage`, from `COLOUR_WORDS` in `src/identity.ts`) and the ninth of
+the 1000x600 wall its middle falls in (`at=top-left`, `placeOf` in
+`src/log.ts`). Rehearsing the crit against a fresh wall, the log said
+`colour=#4e8067` and `colour=#457b9d`, and I couldn't say which was "the
+green one" without a colour picker. With ten colours two pod members also
+share one about one time in ten, and then only the place tells them apart.
+
 ## Options I turned down
 
 1. **Let a hand undo its own mark.** This is the obvious addition, and it's
@@ -79,4 +87,7 @@ different hand. `spec/log.test.ts` checks the log format and that a label
 carries no part of the cookie. In two separate `agent-browser` sessions
 against a fresh wall, each drew a mark. Reading only the log, I could say
 which colour each hand drew, in what order, and how many tabs saw each mark
-arrive. Each browser marked only its own stroke as `mine`.
+arrive. Each browser marked only its own stroke as `mine`. A second rehearsal,
+after the colour words and places, read as "gentle-ember drew red in the top
+left, quick-pebble drew orange in the bottom right and then tried again and
+was refused", from the log alone.
