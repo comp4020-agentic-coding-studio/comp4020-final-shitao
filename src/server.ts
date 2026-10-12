@@ -55,19 +55,46 @@ interface HandInfo {
   label: string;
 }
 
-function ensureHand(req: IncomingMessage, res: ServerResponse): HandInfo {
-  const existing = parseHandCookie(req.headers.cookie);
-  const found = existing ? getHand(existing) : undefined;
-  if (found) return { id: found.id, colour: found.colour, label: handLabel(found) };
+// A page view mints an id and sets the cookie, but the hand isn't stored or
+// logged until that browser opens the wall's stream or posts a mark. An
+// uptime monitor fetching `/` every hour would otherwise add a hand each
+// time, and a narrator at the crit would read it as a third person. The
+// pending set lives in memory: an id it has lost (a restart) or never minted
+// (a made-up cookie) gets a fresh hand, never the one it named.
+const pendingHands = new Set<string>();
+const MAX_PENDING = 10_000;
 
+function pendingId(req: IncomingMessage, res: ServerResponse): { id: string; stale: boolean } {
+  const existing = parseHandCookie(req.headers.cookie);
+  if (existing && pendingHands.has(existing)) return { id: existing, stale: false };
   const id = newHandId();
-  const hand = createHand(id, nameFor(id), colourFor(id));
+  pendingHands.add(id);
+  if (pendingHands.size > MAX_PENDING) pendingHands.delete(pendingHands.values().next().value!);
   res.setHeader("Set-Cookie", setHandCookie(id, isProd));
+  return { id, stale: existing !== undefined };
+}
+
+function storeHand(id: string, stale: boolean): HandInfo {
+  pendingHands.delete(id);
+  const hand = createHand(id, nameFor(id), colourFor(id));
   const label = handLabel(hand);
   // `stale` is a cookie this wall has no hand for: a wiped volume, or one
-  // made up by hand. Either way it gets a fresh hand, never the one it named.
-  logEvent("hand.new", { hand: label, colour: colourWord(hand.colour), stale: existing ? true : undefined });
+  // made up by hand.
+  logEvent("hand.new", { hand: label, colour: colourWord(hand.colour), stale: stale || undefined });
   return { id: hand.id, colour: hand.colour, label };
+}
+
+function knownHand(req: IncomingMessage): HandInfo | undefined {
+  const existing = parseHandCookie(req.headers.cookie);
+  const found = existing ? getHand(existing) : undefined;
+  return found && { id: found.id, colour: found.colour, label: handLabel(found) };
+}
+
+function ensureHand(req: IncomingMessage, res: ServerResponse): HandInfo {
+  const known = knownHand(req);
+  if (known) return known;
+  const { id, stale } = pendingId(req, res);
+  return storeHand(id, stale);
 }
 
 const hours = (ms: number): number => Math.round((ms / 3_600_000) * 10) / 10;
@@ -125,11 +152,14 @@ const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
 
     if (req.method === "GET" && url.pathname === "/") {
-      const hand = ensureHand(req, res);
+      const known = knownHand(req);
+      const pending = known ? undefined : pendingId(req, res);
+      const hand = known ?? { id: pending!.id, colour: colourFor(pending!.id), label: "new" };
       const marks = allMarks();
       const wait = msUntilNextMark(hand.id);
       logEvent("wall.view", {
         hand: hand.label,
+        stale: pending?.stale || undefined,
         marks: marks.length,
         own: marks.filter((m) => m.hand_id === hand.id).length,
         can_mark: wait === 0,
@@ -155,10 +185,12 @@ const server = createServer(async (req, res) => {
       });
       res.write(": connected\n\n");
       const cookieId = parseHandCookie(req.headers.cookie);
-      const streamHand = cookieId ? getHand(cookieId) : undefined;
+      // A pending id's page has run wall.js, so it's a browser: store it now.
+      const streamHand =
+        knownHand(req) ?? (cookieId && pendingHands.has(cookieId) ? storeHand(cookieId, false) : undefined);
       // An unknown cookie is nobody's: it must not be told any mark is `mine`.
       const handId = streamHand?.id;
-      const label = handLabel(streamHand);
+      const label = streamHand?.label ?? "none";
       // Replay and subscribe in the same synchronous turn, so no mark can
       // land between them and be either missed or sent twice.
       const since = resumeFrom(req, url);

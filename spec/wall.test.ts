@@ -29,6 +29,25 @@ it("gives a made-up cookie a fresh hand, never the one it names", async () => {
   expect(cookie).not.toBe(madeUp);
 });
 
+// A page view only reserves its hand (decisions/0003), so the made-up cookie
+// has to be refused where the hand is actually stored, too.
+it("stores the hand a page view minted, and no made-up one, on its first mark", async () => {
+  const madeUp = "hand=00000000-0000-4000-8000-000000000001";
+  const post = (cookie: string, path: string) =>
+    fetch(new URL("/api/marks", baseUrl), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ path }),
+    });
+  const refused = await post(madeUp, `M2.${Date.now() % 100_000},3 L4,5`);
+  expect(cookieFrom(refused)).not.toBe(madeUp);
+
+  const minted = cookieFrom(await fetch(new URL("/", baseUrl)));
+  const kept = await post(minted, `M3.${Date.now() % 100_000},3 L4,5`);
+  expect(kept.status).toBe(201);
+  expect(kept.headers.get("set-cookie")).toBeNull();
+});
+
 it("a hand's mark appears on the wall and survives a fresh request", async () => {
   const first = await fetch(new URL("/", baseUrl));
   const cookie = cookieFrom(first);
