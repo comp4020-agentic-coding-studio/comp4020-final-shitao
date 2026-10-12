@@ -752,7 +752,11 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   showed `#4e8067` can't be pointed at. Colour words plus a coarse place
   (`at=top-left`) fixed it, and on live both hands got the same colour, so
   the place was what told them apart. Rehearse any "narrate from X" crit
-  with two real sessions before calling it done.
+  with two real sessions before calling it done. Also read the live log
+  for visitors who aren't people: an hourly cookieless monitor minted a
+  hand per page view (296 hands, 32 marks). Now a page view only reserves
+  an id in memory; the hand is stored once its page opens the stream or
+  posts.
 
 - **When a long-running deliverable rolls into a new crit, grep its README
   and PROCESS for forward references to "the next crit"/"yet"/"proof of
