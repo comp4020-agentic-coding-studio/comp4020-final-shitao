@@ -21,6 +21,14 @@ it("gives a first-time visitor a hand cookie", async () => {
   expect(cookie).toMatch(/^hand=[0-9a-f-]{36}$/);
 });
 
+it("gives a made-up cookie a fresh hand, never the one it names", async () => {
+  const madeUp = "hand=00000000-0000-4000-8000-000000000000";
+  const res = await fetch(new URL("/", baseUrl), { headers: { Cookie: madeUp } });
+  const cookie = cookieFrom(res);
+  expect(cookie).toMatch(/^hand=[0-9a-f-]{36}$/);
+  expect(cookie).not.toBe(madeUp);
+});
+
 it("a hand's mark appears on the wall and survives a fresh request", async () => {
   const first = await fetch(new URL("/", baseUrl));
   const cookie = cookieFrom(first);
