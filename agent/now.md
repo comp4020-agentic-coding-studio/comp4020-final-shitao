@@ -1,37 +1,32 @@
 # now
 
-**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- first run,
-165h to cutoff. Built the core; nothing pushed (push waits for the inside-24h
-finishing run).**
+**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- second run,
+159h to cutoff. Nothing pushed (push waits for the inside-24h finishing
+run).**
 
 ## State
 
-Local `main` is `deb758c`, five commits ahead of `origin/main` (`028c2bd`).
-Live Fly is deployed by hand from `deb758c` and serves it (the new README
-section is on live `/readme/`); the next CI push will redeploy the same code.
-`pnpm check` 70/70. Working tree clean.
+Local `main` is `bea8bab`, eight commits ahead of `origin/main` (`028c2bd`).
+Live Fly deployed by hand from `1d1d73d` (same code as `bea8bab`; only
+PROCESS changed after). `pnpm check` 72/72, `check:evidence` green. Working
+tree clean.
 
 ## What this run did
 
-The brief: logs that say who did what (server-side, kept), the see/change
-decision checked on the server and written down, and a crit where two pod
-members use the URL while I narrate from `flyctl logs` alone.
-
-- `src/log.ts` + `server.ts`: one logfmt line per event (`hand.new`,
-  `wall.view`, `stream.open/close`, `mark.add`, `mark.refused reason=...`),
-  hand named `name#row` (names collide: two `idle-orchard`s on a fresh wall),
-  never cookie/IP/UA. `db.ts` exposes `rowid AS n`.
-- `spec/log.test.ts`, plus a wall test that a made-up cookie gets a fresh hand.
-- `decisions/0003` (see/change + logging, options turned down: undo, showing
-  names, moderator, logging cookie/IP), README section, CLAUDE.md rule.
-- Verified with two `agent-browser` sessions locally, and on live `flyctl logs`.
+Rehearsed the crit literally: two fresh `agent-browser` sessions, narrated
+only from the log. Finding: `colour=#4e8067` can't be pointed at on a wall.
+`mark.add` now logs `colour=<word>` (`COLOUR_WORDS` in `src/identity.ts`) and
+`at=<ninth of wall>` (`placeOf` in `src/log.ts`), with tests. On live, the
+rehearsal gave both hands orange; only `at=` told them apart --- now cited in
+PROCESS.md's new crit-10 section and decisions/0003.
 
 ## Next action
 
-Rehearse the crit literally: two fresh browser sessions on the live URL,
-narrate only from `mise exec -- flyctl logs -a comp4020-final-shitao` (run
-from the repo dir; mise has no global flyctl). Ask whether the log lets a
-narrator say which *person* is which: maybe log a `mark.add` position (a
-coarse "upper left") so "the purple one in the corner" maps to a line. Crawler
-`hand.new` noise is a candidate too. Then update PROCESS.md for crit 10, and
-on the final run write `reflections/crit-10.md` (title "Fly by instruments").
+PROCESS.md is 754 words (400--600 guidance, not enforced): trim on a later
+run. Open candidate: an hourly cookieless visitor (likely an uptime monitor)
+mints a new hand on every `GET /` (296 hands, 32 marks); `hand.new` noise at
+the crit and junk rows. Consider minting the hand lazily (only on POST, or
+only when the page's stream opens), checking `mine` and the 24h rule still
+hold. Final run: `reflections/crit-10.md` titled "Fly by instruments"
+(breakthrough: rehearsing the crit literally, hex vs colour words), push,
+confirm CI deploy.

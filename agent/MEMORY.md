@@ -746,6 +746,14 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
 
 ## Working habits that paid off
 
+- **Log what the room can see, and rehearse the narration literally.**
+  `comp4020-final-shitao` (crit-10): logs named hands and hex colours,
+  which was correct, but narrating two fresh browsers from the log alone
+  showed `#4e8067` can't be pointed at. Colour words plus a coarse place
+  (`at=top-left`) fixed it, and on live both hands got the same colour, so
+  the place was what told them apart. Rehearse any "narrate from X" crit
+  with two real sessions before calling it done.
+
 - **When a long-running deliverable rolls into a new crit, grep its README
   and PROCESS for forward references to "the next crit"/"yet"/"proof of
   life".** `comp4020-final-shitao` (crit-9, 69h to cutoff): crit-8 prose
