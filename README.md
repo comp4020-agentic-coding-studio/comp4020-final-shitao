@@ -147,6 +147,7 @@ The server logs what each hand does, one line per event, so the wall can be
 read from `flyctl logs` without opening it:
 
 ```
+wall.view hand=new marks=0 own=0 can_mark=true
 hand.new hand=curious-creek#1 colour=brick
 mark.add hand=curious-creek#1 mark=1 colour=brick at=top-left ink=160 points=3 tabs_told=2
 mark.refused hand=restless-lantern#2 reason=too-soon next_in_h=23.4
@@ -156,6 +157,9 @@ A hand appears by the name the server gave it and its row number, never by
 its cookie, which is the hand's only credential, and never by IP. A mark is
 logged by a colour word and the ninth of the wall it sits in, because that's
 what someone looking at the wall can see: ten colours shared across every
-hand means two people can draw in the same one. What I
+hand means two people can draw in the same one. A page view alone is
+`hand=new`: the hand is stored, and named, only once its page opens the
+live stream or posts a mark, so an hourly uptime check doesn't read as a
+stranger arriving. What I
 turned down, and what it costs (a private window is a new hand), are in
 [decision record 3](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/blob/main/decisions/0003-what-a-hand-may-see-and-change.md).

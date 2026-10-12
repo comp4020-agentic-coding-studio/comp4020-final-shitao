@@ -29,7 +29,15 @@ nobody else's.
 
 The logs name a hand as `name#row` (`idle-orchard#7`), one line per event:
 `hand.new`, `wall.view`, `stream.open`/`stream.close`, `mark.add`, and
-`mark.refused` with its reason. `src/log.ts` holds the format. The row number
+`mark.refused` with its reason. `src/log.ts` holds the format. A hand is
+stored, and gets its name and `hand.new` line, when its page opens the stream
+or posts a mark, not when the page is served: until then its id waits in
+memory and its view logs as `hand=new`. The live log showed why: a cookieless
+visitor, likely an uptime check, fetched `/` every hour and each fetch logged
+a new hand, 296 hands for 32 marks. At the crit one of those would read as a
+third person arriving. Something that never runs `wall.js` never becomes a
+hand. An id the server didn't mint, or lost in a restart, still gets a fresh
+hand. The row number
 is there because names collide: the first test run against a fresh wall gave
 `idle-orchard` to hands 1 and 7.
 
