@@ -45,6 +45,26 @@ const COLOURS = [
   "#6d597a",
 ];
 
+// What a narrator reading the logs calls each colour, since nobody at a crit
+// can see "#4e8067" on the wall (decisions/0003). A colour stored before a
+// palette change has no word and logs as its hex.
+const COLOUR_WORDS: Record<string, string> = {
+  "#cc4a28": "brick",
+  "#5177aa": "denim",
+  "#4e8067": "sage",
+  "#a06a13": "ochre",
+  "#9d4edd": "violet",
+  "#457b9d": "steel",
+  "#e63946": "red",
+  "#2a9d8f": "teal",
+  "#bb5a0d": "orange",
+  "#6d597a": "plum",
+};
+
+export function colourWord(hex: string): string {
+  return COLOUR_WORDS[hex] ?? hex;
+}
+
 function pick<T>(list: T[], seed: number): T {
   return list[seed % list.length];
 }

@@ -25,3 +25,17 @@ export function logEvent(event: string, fields: Fields = {}): void {
 export function handLabel(hand: { name: string; n: number } | undefined): string {
   return hand ? `${hand.name}#${hand.n}` : "none";
 }
+
+// Where on the 1000x600 wall a mark sits, as a ninth of it (`top-left`,
+// `middle`): enough for a narrator to point at the stroke a log line means
+// when two hands share a colour. Takes a path that matched PATH_RE.
+export function placeOf(path: string): string {
+  const points = path.split(" ").map((p) => p.slice(1).split(",").map(Number));
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  const x = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const y = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const row = y < 200 ? "top" : y < 400 ? "" : "bottom";
+  const col = x < 333 ? "left" : x < 667 ? "" : "right";
+  return [row, col].filter(Boolean).join("-") || "middle";
+}

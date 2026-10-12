@@ -11,8 +11,8 @@ import {
   type Mark,
 } from "./db.ts";
 import { inkLength, MAX_INK } from "./ink.ts";
-import { colourFor, nameFor, newHandId, parseHandCookie, setHandCookie } from "./identity.ts";
-import { handLabel, logEvent } from "./log.ts";
+import { colourFor, colourWord, nameFor, newHandId, parseHandCookie, setHandCookie } from "./identity.ts";
+import { handLabel, logEvent, placeOf } from "./log.ts";
 import { readmePage, untilPhrase, wallPage } from "./pages.ts";
 
 const PORT = Number(process.env.PORT ?? 8080);
@@ -66,7 +66,7 @@ function ensureHand(req: IncomingMessage, res: ServerResponse): HandInfo {
   const label = handLabel(hand);
   // `stale` is a cookie this wall has no hand for: a wiped volume, or one
   // made up by hand. Either way it gets a fresh hand, never the one it named.
-  logEvent("hand.new", { hand: label, colour: hand.colour, stale: existing ? true : undefined });
+  logEvent("hand.new", { hand: label, colour: colourWord(hand.colour), stale: existing ? true : undefined });
   return { id: hand.id, colour: hand.colour, label };
 }
 
@@ -258,7 +258,8 @@ const server = createServer(async (req, res) => {
       logEvent("mark.add", {
         hand: hand.label,
         mark: mark.id,
-        colour: mark.colour,
+        colour: colourWord(mark.colour),
+        at: placeOf(path),
         ink,
         points: path.split(" ").length,
         tabs_told: sseClients.size,
