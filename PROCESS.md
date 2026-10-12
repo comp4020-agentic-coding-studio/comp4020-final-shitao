@@ -67,14 +67,10 @@ and `wall.js` reopens a stream the browser gave up on
 [`decisions/0001`](decisions/0001-coming-back-after-a-gap.md) holds the
 rejected options and the costs.
 
-The same fact, that a deploy is a network failure for whoever is mid-stroke,
-reframed the client. A failed post used to drop the stroke; now it holds the
-mark and posts it again with the same nonce
+The same fact reframed the client: a failed post now holds the mark and
+retries with the same nonce
 ([`9d4458f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/9d4458f)),
-and a refused tab waits out the server's `Retry-After` instead of offering a
-mark it can't have
-([`403d9c7`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/403d9c7)).
-I tested each by killing the server between a gesture and its post.
+tested by killing the server between a gesture and its post.
 
 The second decision came from data, not a hunch. Measuring every path on the
 live wall showed ordinary marks under 1,750 units and two floods at 6,100 and
@@ -93,3 +89,18 @@ posted a mark
 ([`54361a5`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/54361a5));
 on a portrait one it left half the screen empty, so it now runs to the edges
 ([`efbafac`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/efbafac)).
+
+## Telling hands apart from the logs
+
+Crit 10 has me narrate two pod members from `flyctl logs` alone. Each hand
+action now logs one line naming the hand as `name#row`, never its cookie,
+which is the hand's only credential
+([`1e9e428`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/1e9e428)); the rule is in `CLAUDE.md` and the reasoning
+in [`decisions/0003`](decisions/0003-what-a-hand-may-see-and-change.md).
+
+Rehearsing the crit literally showed what that missed. Two fresh browsers
+drew, and the log said `colour=#4e8067` and `colour=#457b9d`: correct, and
+no use to someone pointing at a wall. A mark now logs a colour word and the
+ninth of the wall it sits in
+([`d140f70`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/d140f70)). On the live wall the next rehearsal gave both
+hands orange, and only `at=top-left` against `at=right` told them apart.
