@@ -3,6 +3,9 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
 export interface Hand {
+  // The row number: unique, sequential and not secret, so logs can tell two
+  // hands apart without the cookie (src/log.ts).
+  n: number;
   id: string;
   name: string;
   colour: string;
@@ -40,7 +43,7 @@ db.exec(`
 const insertHandStmt = db.prepare(
   "INSERT INTO hands (id, name, colour, created_at) VALUES (?, ?, ?, ?)",
 );
-const getHandStmt = db.prepare("SELECT * FROM hands WHERE id = ?");
+const getHandStmt = db.prepare("SELECT rowid AS n, * FROM hands WHERE id = ?");
 const insertMarkStmt = db.prepare(
   "INSERT INTO marks (hand_id, path, colour, created_at) VALUES (?, ?, ?, ?)",
 );
@@ -54,8 +57,8 @@ export function getHand(id: string): Hand | undefined {
 
 export function createHand(id: string, name: string, colour: string): Hand {
   const created_at = Date.now();
-  insertHandStmt.run(id, name, colour, created_at);
-  return { id, name, colour, created_at };
+  const result = insertHandStmt.run(id, name, colour, created_at);
+  return { n: Number(result.lastInsertRowid), id, name, colour, created_at };
 }
 
 export function allMarks(): Mark[] {

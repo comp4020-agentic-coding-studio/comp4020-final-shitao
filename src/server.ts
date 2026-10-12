@@ -12,6 +12,7 @@ import {
 } from "./db.ts";
 import { inkLength, MAX_INK } from "./ink.ts";
 import { colourFor, nameFor, newHandId, parseHandCookie, setHandCookie } from "./identity.ts";
+import { handLabel, logEvent } from "./log.ts";
 import { readmePage, untilPhrase, wallPage } from "./pages.ts";
 
 const PORT = Number(process.env.PORT ?? 8080);
@@ -51,18 +52,25 @@ const PATH_RE = /^M-?\d+(\.\d+)?,-?\d+(\.\d+)?(\sL-?\d+(\.\d+)?,-?\d+(\.\d+)?){1
 interface HandInfo {
   id: string;
   colour: string;
+  label: string;
 }
 
 function ensureHand(req: IncomingMessage, res: ServerResponse): HandInfo {
   const existing = parseHandCookie(req.headers.cookie);
   const found = existing ? getHand(existing) : undefined;
-  if (found) return { id: found.id, colour: found.colour };
+  if (found) return { id: found.id, colour: found.colour, label: handLabel(found) };
 
   const id = newHandId();
   const hand = createHand(id, nameFor(id), colourFor(id));
   res.setHeader("Set-Cookie", setHandCookie(id, isProd));
-  return { id: hand.id, colour: hand.colour };
+  const label = handLabel(hand);
+  // `stale` is a cookie this wall has no hand for: a wiped volume, or one
+  // made up by hand. Either way it gets a fresh hand, never the one it named.
+  logEvent("hand.new", { hand: label, colour: hand.colour, stale: existing ? true : undefined });
+  return { id: hand.id, colour: hand.colour, label };
 }
+
+const hours = (ms: number): number => Math.round((ms / 3_600_000) * 10) / 10;
 
 // The real-time layer: every open tab holds one of these open, and a mark
 // lands in all of them (this one included --- wall.js tells its own gesture
@@ -73,6 +81,7 @@ function ensureHand(req: IncomingMessage, res: ServerResponse): HandInfo {
 interface SseClient {
   res: ServerResponse;
   handId: string | undefined;
+  label: string;
   heartbeat: ReturnType<typeof setInterval>;
 }
 
@@ -117,8 +126,17 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "GET" && url.pathname === "/") {
       const hand = ensureHand(req, res);
+      const marks = allMarks();
+      const wait = msUntilNextMark(hand.id);
+      logEvent("wall.view", {
+        hand: hand.label,
+        marks: marks.length,
+        own: marks.filter((m) => m.hand_id === hand.id).length,
+        can_mark: wait === 0,
+        next_in_h: wait > 0 ? hours(wait) : undefined,
+      });
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(wallPage(allMarks(), hand, msUntilNextMark(hand.id)));
+      res.end(wallPage(marks, hand, wait));
       return;
     }
 
@@ -136,21 +154,36 @@ const server = createServer(async (req, res) => {
         Connection: "keep-alive",
       });
       res.write(": connected\n\n");
-      const handId = parseHandCookie(req.headers.cookie);
+      const cookieId = parseHandCookie(req.headers.cookie);
+      const streamHand = cookieId ? getHand(cookieId) : undefined;
+      // An unknown cookie is nobody's: it must not be told any mark is `mine`.
+      const handId = streamHand?.id;
+      const label = handLabel(streamHand);
       // Replay and subscribe in the same synchronous turn, so no mark can
       // land between them and be either missed or sent twice.
       const since = resumeFrom(req, url);
-      if (since !== undefined) {
-        for (const mark of marksSince(since)) res.write(markEvent(mark, handId));
-      }
+      const missed = since === undefined ? [] : marksSince(since);
+      for (const mark of missed) res.write(markEvent(mark, handId));
       // Fly's proxy (and some browsers) will drop an idle connection; a
       // comment line every 20s is invisible to EventSource but keeps it open.
       const heartbeat = setInterval(() => res.write(": ping\n\n"), 20_000);
-      const client: SseClient = { res, handId, heartbeat };
+      const client: SseClient = { res, handId, label, heartbeat };
       sseClients.add(client);
+      const opened = Date.now();
+      logEvent("stream.open", {
+        hand: label,
+        resume_after: since,
+        replayed: missed.length,
+        tabs: sseClients.size,
+      });
       req.on("close", () => {
         clearInterval(heartbeat);
         sseClients.delete(client);
+        logEvent("stream.close", {
+          hand: label,
+          secs: Math.round((Date.now() - opened) / 1000),
+          tabs: sseClients.size,
+        });
       });
       return;
     }
@@ -174,19 +207,23 @@ const server = createServer(async (req, res) => {
         path = body.path;
         nonce = body.nonce;
       } catch {
+        logEvent("mark.refused", { hand: hand.label, reason: "malformed" });
         res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
         res.end("Malformed request.");
         return;
       }
 
       if (typeof path !== "string" || !PATH_RE.test(path)) {
+        logEvent("mark.refused", { hand: hand.label, reason: "not-a-path" });
         res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
         res.end("That doesn't look like a mark.");
         return;
       }
       // A mark is one gesture, not a fill: past MAX_INK one hand's mark
       // covers the wall everyone else is drawing on (decisions/0002).
-      if (inkLength(path) > MAX_INK) {
+      const ink = Math.round(inkLength(path));
+      if (ink > MAX_INK) {
+        logEvent("mark.refused", { hand: hand.label, reason: "too-much-ink", ink });
         res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
         res.end("That mark uses more ink than a mark gets.");
         return;
@@ -207,6 +244,7 @@ const server = createServer(async (req, res) => {
       // separates the two, nothing can interleave here.
       const wait = msUntilNextMark(hand.id);
       if (wait > 0) {
+        logEvent("mark.refused", { hand: hand.label, reason: "too-soon", next_in_h: hours(wait) });
         res.writeHead(429, {
           "Content-Type": "text/plain; charset=utf-8",
           "Retry-After": String(Math.ceil(wait / 1000)),
@@ -217,6 +255,14 @@ const server = createServer(async (req, res) => {
 
       const mark = addMark(hand.id, path, hand.colour);
       broadcastMark(mark, markNonce);
+      logEvent("mark.add", {
+        hand: hand.label,
+        mark: mark.id,
+        colour: mark.colour,
+        ink,
+        points: path.split(" ").length,
+        tabs_told: sseClients.size,
+      });
       // The id lets wall.js recognise this mark if a reconnect replays it
       // without the nonce, which is never stored.
       res.writeHead(201, { "Content-Type": "application/json; charset=utf-8" });
@@ -227,6 +273,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Not found.");
   } catch (err) {
+    logEvent("error", { method: req.method, path: req.url?.split("?")[0], message: String(err) });
     console.error(err);
     res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Something went wrong.");
