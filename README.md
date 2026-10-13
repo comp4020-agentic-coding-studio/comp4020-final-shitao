@@ -160,6 +160,9 @@ what someone looking at the wall can see: ten colours shared across every
 hand means two people can draw in the same one. A page view alone is
 `hand=new`: the hand is stored, and named, only once its page opens the
 live stream or posts a mark, so an hourly uptime check doesn't read as a
-stranger arriving. What I
+stranger arriving. Fly only buffers the last hundred or so lines, so every
+line is also kept on the volume, and
+`flyctl ssh console -C "node src/events.ts 200"` prints the newest 200 of
+them (a second argument keeps only lines containing it). What I
 turned down, and what it costs (a private window is a new hand), are in
 [decision record 3](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/blob/main/decisions/0003-what-a-hand-may-see-and-change.md).

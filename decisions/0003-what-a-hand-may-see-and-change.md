@@ -77,10 +77,13 @@ share one about one time in ten, and then only the place tells them apart.
 - **The cookie is a bearer token.** Whoever holds it is that hand. It's
   `HttpOnly`, `SameSite=Lax` and `Secure` on Fly, which covers scripts and
   cross-site posts but not someone with the device.
-- **Logs don't keep long.** `flyctl logs` reads Fly's recent buffer, not an
-  archive. The record that lasts is the `marks` table (`hand_id`,
-  `created_at`) on the volume. The logs add what the table can't hold:
-  views, streams and refusals.
+- **The kept log takes volume space.** `flyctl logs` reads Fly's recent
+  buffer, about a hundred lines, which a quiet night's restarts and hourly
+  checks had already cycled past. So every line also goes to an `events`
+  table on the volume (`recordEvent` in `src/db.ts`), capped at the newest
+  100,000 lines, a few MB of the 1 GB volume, and `node src/events.ts`
+  reads it over `flyctl ssh console`. It holds exactly what stdout does,
+  hand labels and no cookies.
 - **The narrator can't see a view without a page load.** A second stroke
   started after a hand has marked is stopped in `wall.js` before any
   request, so it never shows up in the log. Only a hand-built request does,

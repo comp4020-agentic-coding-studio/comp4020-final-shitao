@@ -31,7 +31,9 @@ honest to that, not just the README:
 - **Every hand action logs one `src/log.ts` line naming the hand as
   `name#row`.** Never log the cookie (it's the hand's only credential), an
   IP or a user agent. A new route that changes or refuses something logs it
-  too, or the crit can't narrate it (decisions/0003).
+  too, or the crit can't narrate it (decisions/0003). Log only through
+  `logEvent`, which also keeps the line on the volume; a bare
+  `console.log` is gone once Fly's buffer moves on.
 - **When a check catches a real mistake, fix the check or the harness too**,
   not just the code once, so the same mistake can't silently ship again.
 
