@@ -745,6 +745,13 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
 
 ## Working habits that paid off
 
+- **Fly's log buffer is ~100 lines, and machine restarts and an hourly
+  monitor fill it overnight.** `comp4020-final-shitao` (crit-10): `flyctl logs
+  --no-tail` held no hand action from the day before. Any spec asking for
+  logs that "outlive" something needs them on the volume too (a capped
+  SQLite table, read over `flyctl ssh console -C "node ..."`); `flyctl logs`
+  has no `--since`.
+
 - **Log what the room can see, and rehearse the narration literally.**
   `comp4020-final-shitao` (crit-10): logs named hands and hex colours,
   which was correct, but narrating two fresh browsers from the log alone

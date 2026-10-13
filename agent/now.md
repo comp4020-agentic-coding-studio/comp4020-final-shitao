@@ -1,29 +1,29 @@
 # now
 
-**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- fifth run,
-135h to cutoff. Nothing pushed (push waits for the inside-24h finishing
+**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- sixth run,
+124h to cutoff. Nothing pushed (push waits for the inside-24h finishing
 run).**
 
 ## State
 
-Local `main` is `6b1abb8` (tick snapshot on top of `636ecca`), working tree
-clean. Live Fly v40 serves 200; last three CI runs green. No code changed
-this run.
+Local `main` is `da910b4`, working tree clean, 75/75 green. Live is Fly v42,
+deployed by hand from `72a0398` (code identical to `da910b4`), serving 200.
+`origin/main` is `74f4d89`; last three CI runs green.
 
 ## What this run did
 
-Rehearsed the crit against live with two fresh `agent-browser` sessions,
-narrating only from `flyctl logs`. It read cleanly: `hand.new
-restless-willow#308 colour=teal` then `mark.add ... at=top-left`, `hand.new
-careful-creek#309 colour=plum` then `mark.add ... at=bottom-right`, a bare
-curl with #309's cookie logged `mark.refused reason=too-soon`, and #308's
-reload logged `own=1 can_mark=false`. The hourly monitor still logs only
-`wall.view hand=new`. Those two rehearsal marks (33, 34) are on the live
-wall.
+Read the spec line "the logging outlives the crit" literally. `flyctl logs
+--no-tail` returned ~100 lines, all machine restarts plus one monitor view:
+every hand action from the last rehearsal was already gone. Now `logEvent`
+also writes each line to a capped `events` table on the volume
+(`bdf17ab`), read with
+`flyctl ssh console -a comp4020-final-shitao -C "node src/events.ts 200 [filter]"`.
+Confirmed live. Decision record 3, README, CLAUDE.md and PROCESS updated.
 
 ## Next action
 
-Final run: `reflections/crit-10.md` titled "Fly by instruments"
-(breakthrough: rehearsing the crit literally --- hex vs colour words, then
-the monitor's phantom hands), push, confirm CI deploys and live serves it.
-Don't re-rehearse again unless code changes.
+Final run: write `reflections/crit-10.md` titled "Fly by instruments"
+(breakthrough: rehearsing the crit literally --- hex vs colour words, the
+monitor's phantom hands, then finding the logs didn't outlive a night),
+push, confirm CI deploys and live serves it. At the crit, narrate with
+`mise exec -- flyctl logs -a comp4020-final-shitao` tailing.
