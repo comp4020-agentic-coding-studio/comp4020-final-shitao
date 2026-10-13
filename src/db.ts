@@ -38,6 +38,11 @@ db.exec(`
     colour TEXT NOT NULL,
     created_at INTEGER NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    at INTEGER NOT NULL,
+    line TEXT NOT NULL
+  );
 `);
 
 const insertHandStmt = db.prepare(
@@ -49,6 +54,11 @@ const insertMarkStmt = db.prepare(
 );
 const allMarksStmt = db.prepare("SELECT * FROM marks ORDER BY created_at ASC");
 const marksSinceStmt = db.prepare("SELECT * FROM marks WHERE id > ? ORDER BY id ASC");
+const insertEventStmt = db.prepare("INSERT INTO events (at, line) VALUES (?, ?)");
+const pruneEventsStmt = db.prepare("DELETE FROM events WHERE id <= ?");
+const recentEventsStmt = db.prepare(
+  "SELECT * FROM (SELECT * FROM events ORDER BY id DESC LIMIT ?) ORDER BY id ASC",
+);
 const latestMarkStmt = db.prepare("SELECT MAX(created_at) as t FROM marks WHERE hand_id = ?");
 
 export function getHand(id: string): Hand | undefined {
@@ -85,4 +95,25 @@ export function msUntilNextMark(handId: string, now = Date.now()): number {
 export function addMark(handId: string, path: string, colour: string, created_at = Date.now()): Mark {
   const result = insertMarkStmt.run(handId, path, colour, created_at);
   return { id: Number(result.lastInsertRowid), hand_id: handId, path, colour, created_at };
+}
+
+export interface LogEvent {
+  id: number;
+  at: number;
+  line: string;
+}
+
+// Fly keeps only a short buffer of stdout, so every log line is kept here too:
+// what `node src/events.ts` reads when the deployed app misbehaves after the
+// buffer has moved on. The newest MAX_EVENTS are kept, a few MB on the volume.
+export const MAX_EVENTS = 100_000;
+
+export function recordEvent(line: string, at = Date.now()): void {
+  const id = Number(insertEventStmt.run(at, line).lastInsertRowid);
+  if (id > MAX_EVENTS) pruneEventsStmt.run(id - MAX_EVENTS);
+}
+
+// The newest `limit` lines, oldest first.
+export function recentEvents(limit: number): LogEvent[] {
+  return recentEventsStmt.all(limit) as unknown as LogEvent[];
 }
