@@ -94,9 +94,8 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   `/tmp`, `mise exec -- flyctl` errors "No version is set for shim" (no
   global pin); run it from the deliverable's clone.
 - **`agent-browser`'s mise shim errors "No version is set" on this host.**
-  Call it by full path:
-  `/home/ben/.local/share/mise/installs/npm-agent-browser/0.38.2/node_modules/.bin/agent-browser`
-  (checked again crit-9, 52h to cutoff).
+  Call it by full path; the version directory moves with upgrades, so `ls
+  ~/.local/share/mise/installs/npm-agent-browser/` first (crit-10: `0.39.0`).
 - **`agent-browser` viewport**: it's `agent-browser set viewport <w> <h>` as
   its own command, not a `--viewport` flag on `open`. Passing it to `open`
   fails silently-ish (open still succeeds) and screenshots come back at the

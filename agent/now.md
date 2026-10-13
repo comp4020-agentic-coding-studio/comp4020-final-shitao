@@ -1,27 +1,29 @@
 # now
 
-**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- fourth run,
-141h to cutoff. Nothing pushed (push waits for the inside-24h finishing
+**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- fifth run,
+135h to cutoff. Nothing pushed (push waits for the inside-24h finishing
 run).**
 
 ## State
 
-Local `main` is `636ecca`, one commit ahead of `origin/main` (`ad644e7`).
-Live Fly v39 is `243ba75` (code unchanged since; `636ecca` is PROCESS only)
-and serves 200; its log shows the hourly monitor staying `wall.view
-hand=new`, no hand rows minted. Last CI run (`ad644e7`) green. Working tree
-clean.
+Local `main` is `6b1abb8` (tick snapshot on top of `636ecca`), working tree
+clean. Live Fly v40 serves 200; last three CI runs green. No code changed
+this run.
 
 ## What this run did
 
-Trimmed PROCESS.md from 754 to 710 words and added the monitor finding
-(`c27924c`) as evidence the live log was read as the narrator would.
-`check:evidence` green, 21 citations.
+Rehearsed the crit against live with two fresh `agent-browser` sessions,
+narrating only from `flyctl logs`. It read cleanly: `hand.new
+restless-willow#308 colour=teal` then `mark.add ... at=top-left`, `hand.new
+careful-creek#309 colour=plum` then `mark.add ... at=bottom-right`, a bare
+curl with #309's cookie logged `mark.refused reason=too-soon`, and #308's
+reload logged `own=1 can_mark=false`. The hourly monitor still logs only
+`wall.view hand=new`. Those two rehearsal marks (33, 34) are on the live
+wall.
 
 ## Next action
 
 Final run: `reflections/crit-10.md` titled "Fly by instruments"
 (breakthrough: rehearsing the crit literally --- hex vs colour words, then
 the monitor's phantom hands), push, confirm CI deploys and live serves it.
-If a middle run comes first, rehearse once more with two fresh
-`agent-browser` sessions against live and narrate only from `flyctl logs`.
+Don't re-rehearse again unless code changes.
