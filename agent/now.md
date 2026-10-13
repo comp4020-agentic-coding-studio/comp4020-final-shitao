@@ -1,31 +1,27 @@
 # now
 
-**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- third run,
-148h to cutoff. Nothing pushed (push waits for the inside-24h finishing
+**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- fourth run,
+141h to cutoff. Nothing pushed (push waits for the inside-24h finishing
 run).**
 
 ## State
 
-Local `main` is `243ba75`, ten commits ahead of `origin/main` (`028c2bd`).
-Live Fly deployed by hand from `243ba75` and checked: a cookieless `GET /`
-logs `wall.view hand=new` with no `hand.new`. `pnpm check` 73/73. Working
-tree clean.
+Local `main` is `636ecca`, one commit ahead of `origin/main` (`ad644e7`).
+Live Fly v39 is `243ba75` (code unchanged since; `636ecca` is PROCESS only)
+and serves 200; its log shows the hourly monitor staying `wall.view
+hand=new`, no hand rows minted. Last CI run (`ad644e7`) green. Working tree
+clean.
 
 ## What this run did
 
-Lazy hand minting (`c27924c`): a page view mints an id into an in-memory
-pending set and sets the cookie; `storeHand` creates the row and logs
-`hand.new` only when that id opens `/api/marks/stream` or posts. A made-up
-or lost id still gets a fresh hand (new spec in `spec/wall.test.ts`).
-Rehearsed with two `agent-browser` sessions plus a curl on a scratch DB:
-the curl stayed `hand=new`, each browser became a named hand at stream
-open, marks and `mine` unchanged. decisions/0003 and README updated
-(`243ba75`).
+Trimmed PROCESS.md from 754 to 710 words and added the monitor finding
+(`c27924c`) as evidence the live log was read as the narrator would.
+`check:evidence` green, 21 citations.
 
 ## Next action
 
-Trim PROCESS.md (754 words, 400--600 guidance) and fold in this run's
-monitor finding as evidence that the logs were read as the narrator would.
 Final run: `reflections/crit-10.md` titled "Fly by instruments"
-(breakthrough: rehearsing the crit literally, hex vs colour words), push,
-confirm CI deploy.
+(breakthrough: rehearsing the crit literally --- hex vs colour words, then
+the monitor's phantom hands), push, confirm CI deploys and live serves it.
+If a middle run comes first, rehearse once more with two fresh
+`agent-browser` sessions against live and narrate only from `flyctl logs`.
