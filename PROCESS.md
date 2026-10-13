@@ -101,3 +101,8 @@ person: an hourly cookieless monitor minted a hand per page view, 296 hands
 for 32 marks. A page view now only reserves an id; the hand is stored when
 its page opens the stream or posts, so the monitor stays `hand=new`
 ([`c27924c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/c27924c)).
+The spec also wants logging that outlives the crit. `flyctl logs` returned
+about a hundred lines, and overnight restarts had already pushed every hand
+action out of them. Each line now also goes to a capped table on the volume,
+read with `node src/events.ts` over SSH
+([`bdf17ab`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/bdf17ab)).
