@@ -1,51 +1,47 @@
 # Process
 
 Trace started from the brief's question --- what would make this app good ---
-before it started from a stack. The first commit,
+not from a stack. The first commit,
 [`2828f3e`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/2828f3e),
 landed the README's argument (a mark is a gesture, not a post; the wall grows
 by care, not engagement) and `CLAUDE.md`'s rules in the same change as the
 code, so every later session read the argument before it read the source.
-Those rules are the harness: no text field, no accounts, one mark a day
-enforced in `src/db.ts` rather than the client, no third-party requests,
-broadcast only after persistence.
+Those rules are the harness: no text, no accounts, the daily limit enforced
+on the server, broadcast only after persistence.
 
 ## The stack
 
-A framework-free `node:http` server in TypeScript, run directly by Node 24's
-type-stripping, with `node:sqlite` at `DB_PATH` and server-sent events for
-the live layer. Astro with `better-sqlite3`, which I'd used the crit before,
-was most of the code for two pages, and its native addon has to compile in
-the slim image. SSE beat WebSockets because the wall only pushes a finished
-mark one way
+A framework-free `node:http` server in TypeScript, with `node:sqlite` at
+`DB_PATH` and server-sent events for the live layer. Astro, which I'd used
+the crit before, was most of the code for two pages; SSE beat WebSockets
+because the wall only pushes a finished mark one way
 ([`f080752`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/f080752)).
 An in-memory set of connections is enough while `fly.toml` pins one machine.
-
-Nothing hides concurrency from me. The first real bug was a race:
+The first real bug was a race:
 `hasMarkedToday` ran before `await readBody`, so a client holding its body
-open could mark twice. Ordinary concurrent requests never reproduced it; a
-test that held one body open while a second request finished did, and is
-now the regression test
+open could mark twice. Ordinary concurrent requests never reproduced it;
+holding one body open while a second request finished did, and is now the
+regression test
 ([`7a89c68`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/7a89c68)).
 
 ## Correcting the work
 
-Early tests only drove the server. After a browser session found a hand
-could start a second stroke once its mark had landed
+Early tests only drove the server. After a browser found a hand could start
+a second stroke once its mark had landed
 ([`2e59190`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/2e59190)),
 `spec/wall-client.test.ts` began loading the real `wall.js` into jsdom and
 dispatching real events at it
 ([`ec78095`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/ec78095)).
-Each fix since must fail its new test against the pre-fix file. That caught
-a self-echo filter matching by content, not a nonce
+Each fix since must fail its test against the pre-fix file, which caught a
+self-echo filter matching by content
 ([`672e486`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/672e486)),
 and a keyboard-only hand with no way to draw
 ([`5138836`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5138836)).
 
-Rereading the spec one line at a time found what no test looked for. "Find
-their trace still there" was checked as "the mark persists," but ten shared
-colours meant a stranger couldn't tell which stroke was theirs; a hand's own
-marks now render thicker, on top, for that hand only
+Rereading the spec line by line found what no test looked for. "Find their
+trace still there" had been checked as "the mark persists," but with ten
+shared colours nobody could tell which stroke was theirs; a hand's own marks
+now render thicker and on top
 ([`6e07998`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6e07998),
 [`a9d92f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/a9d92f3)).
 "One mark a day" meant a UTC day, which reopens at 11am in Canberra; it is
@@ -54,12 +50,10 @@ now 24 hours since a hand's last mark
 
 ## Several people at once
 
-Crit 9 asked for one decision about several people using the app together.
-I chose what a tab sees after its stream drops, because every push now
-redeploys the one machine. A real browser settled it: with a tab open, I
-killed the server, restarted it, and posted a mark. Chrome hadn't retried.
-Its `EventSource` sat `CLOSED`, and the tab would have stayed frozen until
-a reload. The stream now replays everything after the last mark id a tab
+Crit 9 asked for a decision about several people at once. I chose what a
+tab sees after its stream drops, because every push redeploys the one
+machine. Killing and restarting the server under an open tab showed Chrome
+never retried: its `EventSource` sat `CLOSED` until a reload. The stream now replays everything after the last mark id a tab
 has
 ([`7894d00`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/7894d00)),
 and `wall.js` reopens a stream the browser gave up on
@@ -67,14 +61,13 @@ and `wall.js` reopens a stream the browser gave up on
 [`decisions/0001`](decisions/0001-coming-back-after-a-gap.md) holds the
 rejected options and the costs.
 
-The same fact reframed the client: a failed post now holds the mark and
-retries with the same nonce
+A failed post now holds the mark and retries with the same nonce
 ([`9d4458f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/9d4458f)),
 tested by killing the server between a gesture and its post.
 
-The second decision came from data, not a hunch. Measuring every path on the
-live wall showed ordinary marks under 1,750 units and two floods at 6,100 and
-34,600, one covering a third of the wall. That gap set an ink cap of 2,500,
+The second decision came from data. Every path on the live wall measured
+under 1,750 units except two floods at 6,100 and 34,600; that gap set an ink
+cap of 2,500,
 refused by the server
 ([`c2b152b`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/c2b152b))
 and met by a stroke that stops growing rather than failing on lift
@@ -83,9 +76,8 @@ with its costs in
 [`decisions/0002`](decisions/0002-one-hands-share-of-the-wall.md)
 ([`c37ffec`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/c37ffec)).
 
-The pod will draw on phones, so I checked phone sizes the spec never names.
-On a landscape phone the wall overflowed the screen and a scroll swipe
-posted a mark
+The pod draws on phones, so I checked sizes the spec never names. On a
+landscape phone a scroll swipe posted a mark
 ([`54361a5`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/54361a5));
 on a portrait one it left half the screen empty, so it now runs to the edges
 ([`efbafac`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/efbafac)).
@@ -93,14 +85,19 @@ on a portrait one it left half the screen empty, so it now runs to the edges
 ## Telling hands apart from the logs
 
 Crit 10 has me narrate two pod members from `flyctl logs` alone. Each hand
-action now logs one line naming the hand as `name#row`, never its cookie,
-which is the hand's only credential
+action logs one line naming the hand as `name#row`, never its cookie
 ([`1e9e428`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/1e9e428)); the rule is in `CLAUDE.md` and the reasoning
 in [`decisions/0003`](decisions/0003-what-a-hand-may-see-and-change.md).
 
-Rehearsing the crit literally showed what that missed. Two fresh browsers
-drew, and the log said `colour=#4e8067` and `colour=#457b9d`: correct, and
-no use to someone pointing at a wall. A mark now logs a colour word and the
+Rehearsing the crit literally showed what that missed: two fresh browsers
+drew and the log said `colour=#4e8067` and `colour=#457b9d`, correct and no
+use to someone pointing at a wall. A mark now logs a colour word and the
 ninth of the wall it sits in
 ([`d140f70`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/d140f70)). On the live wall the next rehearsal gave both
 hands orange, and only `at=top-left` against `at=right` told them apart.
+
+Reading the live log as the narrator would found a visitor who wasn't a
+person: an hourly cookieless monitor minted a hand per page view, 296 hands
+for 32 marks. A page view now only reserves an id; the hand is stored when
+its page opens the stream or posts, so the monitor stays `hand=new`
+([`c27924c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/c27924c)).
