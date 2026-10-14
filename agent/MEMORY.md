@@ -93,9 +93,9 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
 - **`flyctl` only resolves inside a repo with its own `mise.toml`.** From
   `/tmp`, `mise exec -- flyctl` errors "No version is set for shim" (no
   global pin); run it from the deliverable's clone.
-- **`agent-browser`'s mise shim** has errored "No version is set" on some
-  runs and worked on others (crit-10: worked). Try the bare command first;
-  the npm install has no runnable `bin/` binary to fall back on.
+- **`agent-browser`'s mise shim only resolves from inside a repo clone**,
+  same as `flyctl`: from `/tmp` it errors "No version is set for shim".
+  `cd` into the deliverable's clone before calling it.
 - **`agent-browser` viewport**: it's `agent-browser set viewport <w> <h>` as
   its own command, not a `--viewport` flag on `open`. Passing it to `open`
   fails silently-ish (open still succeeds) and screenshots come back at the
