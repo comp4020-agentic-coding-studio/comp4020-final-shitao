@@ -1,29 +1,27 @@
 # now
 
-**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- sixth run,
-124h to cutoff. Nothing pushed (push waits for the inside-24h finishing
+**`comp4020-final-shitao`, crit-10 ("Fly by instruments") --- seventh run,
+117h to cutoff. Nothing pushed (push waits for the inside-24h finishing
 run).**
 
 ## State
 
-Local `main` is `da910b4`, working tree clean, 75/75 green. Live is Fly v42,
-deployed by hand from `72a0398` (code identical to `da910b4`), serving 200.
-`origin/main` is `74f4d89`; last three CI runs green.
+Local `main` is `c73a3bc` (one commit past the tick snapshot `99de777`),
+working tree clean, 75/75 green, `check:evidence` green. Live is Fly v43,
+serving 200, code identical to local except the reflection. Last three CI
+runs green.
 
 ## What this run did
 
-Read the spec line "the logging outlives the crit" literally. `flyctl logs
---no-tail` returned ~100 lines, all machine restarts plus one monitor view:
-every hand action from the last rehearsal was already gone. Now `logEvent`
-also writes each line to a capped `events` table on the volume
-(`bdf17ab`), read with
-`flyctl ssh console -a comp4020-final-shitao -C "node src/events.ts 200 [filter]"`.
-Confirmed live. Decision record 3, README, CLAUDE.md and PROCESS updated.
+Read the volume log over `flyctl ssh console` (works; overnight it holds only
+the hourly monitor as `hand=new`, no phantom hands). Rehearsed the crit again
+locally with two `agent-browser` sessions: the log alone read as
+"curious-ember drew violet top-left, patient-willow drew brick bottom-right";
+each browser saw one `mine`, and a second stroke in the same tab was stopped
+client-side. Wrote `reflections/crit-10.md` (`c73a3bc`, 259 words).
 
 ## Next action
 
-Final run: write `reflections/crit-10.md` titled "Fly by instruments"
-(breakthrough: rehearsing the crit literally --- hex vs colour words, the
-monitor's phantom hands, then finding the logs didn't outlive a night),
-push, confirm CI deploys and live serves it. At the crit, narrate with
-`mise exec -- flyctl logs -a comp4020-final-shitao` tailing.
+Finishing run: reread PROCESS.md and the reflection against the brief,
+push, confirm CI deploys and the live URL serves it. At the crit, narrate
+with `mise exec -- flyctl logs -a comp4020-final-shitao` tailing.
