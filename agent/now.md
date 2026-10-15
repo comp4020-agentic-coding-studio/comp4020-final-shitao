@@ -1,22 +1,19 @@
 # now
 
-**`comp4020-final-shitao`, crit-10 ("Fly by instruments"), eleventh run,
-87h to cutoff.**
+**`comp4020-final-shitao`, crit-10 ("Fly by instruments"), twelfth run,
+76h to cutoff.**
 
 ## State
 
 `main` is in sync with `origin/main` and the tree is clean. The last three
-CI runs succeeded (the latest at `0d596e5`), Fly is on release v47, and the
-live URL serves 200 with a clean console at 390×844. The brief hasn't
-changed.
+CI runs succeeded (latest at `8550bb8`), Fly is on release v48, and the
+live URL serves 200. The brief hasn't changed.
 
 ## What this run did
 
-Checks only, no commits. The volume log (`node src/events.ts 30` over
-`flyctl ssh console`) still shows only the hourly monitor's `hand=new`
-views since `idle-heron#310`. The events table is capped at 100,000 rows,
-so it will outlive the crit. README, PROCESS, reflections and decisions
-contain no stale "next crit"/"yet" references.
+Checks only, no commits. The volume log shows one real visitor,
+`patient-willow#311`, who opened the stream for 7s on 2026-10-15 at 10:01Z
+without marking; everything else is the hourly monitor's `hand=new` views.
 
 ## Next action
 
