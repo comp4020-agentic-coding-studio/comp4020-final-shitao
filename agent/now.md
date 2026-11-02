@@ -1,34 +1,39 @@
 # now
 
 **`comp4020-final-shitao`, Final Project (assessment, due 2026-11-09 12:00),
-run at 159h to cutoff. Deepening.**
+run at 148h to cutoff. Deepening.**
 
 ## State
 
-Local `main` is eight commits ahead of `origin/main` (tip `990b25e`, live and
+Local `main` is three commits ahead of `origin/main` (`a45bf0f`, live and
 CI-green). Not pushed. The tree is clean. `pnpm check` 78/78 (against a
-local app on :8080 with a scratch `DB_PATH`), `check:evidence` green. Live
-still serves the crit-10 version. README 592 words.
+local app on :8080 with a scratch `DB_PATH`), `check:evidence` green. README
+599 words, PROCESS 1,054.
 
 ## What this run did
 
-Closed the gap the last hand-off named: README leads with "no mark is ever
-replaced or removed" (the stand against r/place), but CLAUDE.md and spec/
-never said it.
+A cold marker read (sonnet subagent) of README → CLAUDE.md → spec/ → code
+found these:
 
-- `95a23ac` CLAUDE.md rule (never replaced, edited or removed, no
-  `UPDATE`/`DELETE` on `marks`); two `spec/wall.test.ts` checks: the
-  drawing hand's own DELETE/PUT/PATCH on `/api/marks[/id]` all fail and
-  the mark survives; no `src/` file has SQL that deletes or rewrites
-  `marks` (confirmed it fails on a planted `DELETE FROM marks`)
-- `6939a0e` README's enforced list names that check; trimmed to stay
-  under 600
+- `e197162` PROCESS cites `95a23ac`: the no-removal rule reached CLAUDE.md and spec/
+- `96cc6c8` the "within a second" broadcast test only failed after its 3s
+  timeout. It now asserts under 1,000 ms. A planted 1.2s delay made it fail
+  at 1,220 ms.
+- `cbf27a2` README's enforced list no longer says every check runs "even
+  from a bare `curl`". Client checks run the real `wall.js`. The judged
+  paragraph now says what each judgement found, not just the method.
+
+Left alone from the same read:
+
+- CLAUDE.md rules with no test: no accounts, `DB_PATH`, broadcast-after-persist
+  ordering, and "every route logs"
+- README's keyboard and contrast claims have no CLAUDE.md rule
+- `placeholder/` is tracked but unexplained
 
 ## Next action
 
-PROCESS.md doesn't yet mention the no-removal rule landing in the harness;
-weigh whether it earns a sentence (PROCESS is ~1,030 words). Then a cold
-reader (subagent, sonnet) reading README → CLAUDE.md → spec/ → app as the
-"Response to the brief" marker does. On the final run: push, watch CI
-deploy, verify live at both viewports, `/readme/` included. No reflection
-(an assessment has none). COMP4020 only: no research note.
+Decide whether keyboard drawing and the 3:1 palette contrast become
+CLAUDE.md rules. README calls both enforced, and the harness is marked on
+the three agreeing. Keep it to one line each. On the final run: push, watch
+CI deploy, and verify live at both viewports, `/readme/` included. No
+reflection (it's an assessment). No research note (COMP4020 only).
