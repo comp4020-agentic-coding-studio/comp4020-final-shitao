@@ -28,7 +28,7 @@ The alternative I argued against was Reddit's
 painted over. That made it a contest organised groups won
 ([Wikipedia](https://en.wikipedia.org/wiki/R/place) records subreddits and
 streamers coordinating to draw over each other). Trace takes the other
-side. A mark can't be covered or removed, so come back tomorrow and your
+side. No mark is ever replaced or removed, so come back tomorrow and your
 mark, and everyone else's, is still there; and a day
 between marks, with a fixed amount of ink each, means nobody out-draws
 anyone, because a wall that everyone can flood stops being a wall anyone
