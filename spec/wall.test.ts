@@ -351,3 +351,10 @@ it("announces what happens to a mark to assistive technology", async () => {
   const status = new JSDOM(html).window.document.getElementById("status");
   expect(status?.getAttribute("role")).toBe("status");
 });
+
+it("lets a marker who starts at /readme/ get onto the wall", async () => {
+  const res = await fetch(new URL("/readme/", baseUrl));
+  const dom = new JSDOM(await res.text());
+  const hrefs = [...dom.window.document.querySelectorAll("a")].map((a) => a.getAttribute("href"));
+  expect(hrefs).toContain("/");
+});

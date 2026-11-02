@@ -85,5 +85,8 @@ export function wallPage(
 
 export function readmePage(readmeMarkdown: string): string {
   const html = marked.parse(readmeMarkdown, { async: false }) as string;
-  return layout("About Trace", `    <main>\n${html}\n    </main>`);
+  // Markers arrive at /readme/ with only the URL, so the way onto the wall
+  // has to be on this page, before and after the argument.
+  const toWall = `<p><a href="/">Go to the wall and draw your mark</a></p>`;
+  return layout("About Trace", `    <main>\n${toWall}\n${html}\n${toWall}\n    </main>`);
 }
