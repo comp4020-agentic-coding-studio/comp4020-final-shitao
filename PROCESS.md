@@ -131,6 +131,9 @@ alternative it had been missing: r/place, the shared canvas where any tile
 can be painted over, which is the design Trace's one rule most directly
 refuses
 ([`e5b44a7`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/e5b44a7)).
+Leading with that rule exposed that neither `CLAUDE.md` nor `spec/` had ever
+stated it; both do now, and the check fails on a planted `DELETE FROM marks`
+([`95a23ac`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/95a23ac)).
 The stack argument, which had shrunk to a paragraph as this file was
 rewritten each crit, moved into its own record
 ([`4a0545f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/4a0545f)).
