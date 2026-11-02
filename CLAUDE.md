@@ -11,6 +11,11 @@ honest to that, not just the README:
 - **No accounts, ever.** Identity is the `hand` cookie `src/identity.ts`
   mints, nothing else. Don't add a login, an email field, or anything that
   outlives the cookie.
+- **A mark, once stored, is never replaced, edited or removed** --- not by
+  its own hand, not by an admin route, not by a cleanup job. That is what
+  separates the wall from r/place's paint-over canvas (README). No undo, no
+  delete endpoint, no `UPDATE`/`DELETE` on `marks`; `spec/wall.test.ts`
+  checks both the routes and the source.
 - **The one-mark-a-day limit is enforced in `src/db.ts`, not the client.**
   The drawing UI can hide the button after a mark lands, but the server must
   independently refuse a second `POST /api/marks` from the same hand within

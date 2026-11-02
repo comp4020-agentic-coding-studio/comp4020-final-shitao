@@ -358,3 +358,39 @@ it("lets a marker who starts at /readme/ get onto the wall", async () => {
   const hrefs = [...dom.window.document.querySelectorAll("a")].map((a) => a.getAttribute("href"));
   expect(hrefs).toContain("/");
 });
+
+// README: "No mark is ever replaced or removed." Not even by the hand that
+// drew it, so try every method a hand-built request could reach for.
+it("lets no request, not even the drawing hand's, change or remove a mark", async () => {
+  const cookie = cookieFrom(await fetch(new URL("/", baseUrl)));
+  const path = `M7.${Date.now() % 100_000},8 L9,10`;
+  const post = await fetch(new URL("/api/marks", baseUrl), {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Cookie: cookie },
+    body: JSON.stringify({ path }),
+  });
+  expect(post.status).toBe(201);
+  const { id } = (await post.json()) as { id: number };
+
+  for (const method of ["DELETE", "PUT", "PATCH"]) {
+    for (const target of ["/api/marks", `/api/marks/${id}`]) {
+      const res = await fetch(new URL(target, baseUrl), {
+        method,
+        headers: { "Content-Type": "application/json", Cookie: cookie },
+        body: JSON.stringify({ id, path: "M0,0 L1,1" }),
+      });
+      expect(res.ok, `${method} ${target}`).toBe(false);
+    }
+  }
+  const html = await (await fetch(new URL("/", baseUrl), { headers: { Cookie: cookie } })).text();
+  expect(html).toContain(path);
+});
+
+it("has no code path that deletes or rewrites a stored mark", async () => {
+  const { readFileSync, readdirSync } = await import("node:fs");
+  for (const file of readdirSync("src")) {
+    const src = readFileSync(`src/${file}`, "utf8");
+    expect(src, `src/${file}`).not.toMatch(/\b(DELETE\s+FROM|UPDATE|REPLACE\s+INTO)\s+marks\b/i);
+    expect(src, `src/${file}`).not.toMatch(/INSERT\s+OR\s+REPLACE\s+INTO\s+marks/i);
+  }
+});
