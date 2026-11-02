@@ -26,11 +26,9 @@ you're away fill in quietly, so it reads as a wall, not an activity feed.
 The alternative I argued against was Reddit's
 [r/place](https://www.redditinc.com/blog/how-we-built-rplace/): one tile every five minutes, and any tile can be
 painted over. That made it a contest organised groups won
-([Wikipedia](https://en.wikipedia.org/wiki/R/place) records subreddits and
-streamers coordinating to draw over each other). Trace takes the other
-side. No mark is ever replaced or removed, so come back tomorrow and your
-mark, and everyone else's, is still there; and a day
-between marks, with a fixed amount of ink each, means nobody out-draws
+([Wikipedia](https://en.wikipedia.org/wiki/R/place) records streamers
+coordinating to draw over others). Trace takes the other
+side. No mark is ever replaced or removed, and a day between marks, with a fixed amount of ink each, means nobody out-draws
 anyone, because a wall that everyone can flood stops being a wall anyone
 wants to add to.
 
@@ -49,7 +47,8 @@ can be.
 
 - a stranger gets a hand on first visit, and a made-up cookie never gets
   someone else's
-- a mark is still there on a fresh request, and reaches every open tab
+- a mark is still there on a fresh request, no request (its own hand's
+  included) can change or remove it, and it reaches every open tab
   within a second; a tab that dropped its stream gets what it missed
 - a second mark within 24 hours is refused (a rolling window, not a
   calendar day), as is any path over 2,500 units of ink
@@ -63,5 +62,4 @@ seeding 300 marks into a scratch wall and by drawing with three hands at
 once, and at three crits with a pod on their own phones. The third I've
 only argued.
 
-Each larger call, with the options I turned down and what it costs, has a
-record in [`decisions/`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/tree/main/decisions).
+Each larger call, its rejected options and its costs, is recorded in [`decisions/`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/tree/main/decisions).
