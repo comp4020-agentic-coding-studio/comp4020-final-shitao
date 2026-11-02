@@ -272,9 +272,14 @@ it("broadcasts a new mark over /api/marks/stream within a second", async () => {
   const cookie = cookieFrom(await fetch(new URL("/", baseUrl)));
   const path = "M11,12 L13,14";
 
-  const [event] = await Promise.all([stream.next(), postMark(cookie, path)]);
+  const posted = performance.now();
+  const [event] = await Promise.all([
+    stream.next().then((e) => ({ ...e, after: performance.now() - posted })),
+    postMark(cookie, path),
+  ]);
 
   expect(event.path).toBe(path);
+  expect(event.after).toBeLessThan(1000);
   stream.close();
 });
 
