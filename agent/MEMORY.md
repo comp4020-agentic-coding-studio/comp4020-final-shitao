@@ -743,7 +743,21 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   `cookies` immediately before and after; rerun in the first session if the
   jar is empty.
 
+- **`mise exec` can fail trying to install an unrelated global tool**
+  (`rust@latest`, a rustup "detected conflict: bin/cargo" error) before running
+  the command at all. `MISE_DISABLE_TOOLS=rust mise exec -- pnpm check` skips
+  it; the repo's own node/pnpm pins still apply.
+
 ## Working habits that paid off
+
+- **When a long-running repo rolls from crits into its assessment, reread
+  the assessment brief's own bars against the repo, not the crits'.** The
+  final project's README (400–600 words) and PROCESS (900–1100, rewritten,
+  with a case for the agent workflow as well as the stack) had drifted to
+  1,680 and 668 words across three crits, each green on `check:evidence`,
+  which enforces neither. Also check what a marker who arrives with only the
+  URL sees first: `/readme/` had no link to the app.
+
 
 - **Fly's log buffer is ~100 lines, and machine restarts and an hourly
   monitor fill it overnight.** `comp4020-final-shitao` (crit-10): `flyctl logs
