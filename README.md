@@ -24,11 +24,12 @@ can find out who drew which mark unless they tell you. Marks drawn while
 you're away fill in quietly, so it reads as a wall, not an activity feed.
 
 The alternative I argued against was Reddit's
-[r/place](https://www.redditinc.com/blog/how-we-built-rplace/): one tile every five minutes, and any tile can be
-painted over. That made it a contest organised groups won
+[r/place](https://www.redditinc.com/blog/how-we-built-rplace/): one
+tile every five minutes, and any tile can be painted over. That made it a contest organised groups won
 ([Wikipedia](https://en.wikipedia.org/wiki/R/place) records streamers
 coordinating to draw over others). Trace takes the other
-side. No mark is ever replaced or removed, and a day between marks, with a fixed amount of ink each, means nobody out-draws
+side. No mark is ever replaced or removed, and a day between marks,
+with a fixed amount of ink each, means nobody out-draws
 anyone, because a wall that everyone can flood stops being a wall anyone
 wants to add to.
 
@@ -43,23 +44,25 @@ can be.
 
 ## What's enforced, and what's judged
 
-`spec/` checks these against the running app, even from a bare `curl`:
+`spec/` checks these, the server over plain HTTP, the client by running
+the real `wall.js`:
 
-- a stranger gets a hand on first visit, and a made-up cookie never gets
+- a stranger gets a hand on first visit; a made-up cookie never gets
   someone else's
 - a mark is still there on a fresh request, no request (its own hand's
   included) can change or remove it, and it reaches every open tab
   within a second; a tab that dropped its stream gets what it missed
-- a second mark within 24 hours is refused (a rolling window, not a
-  calendar day), as is any path over 2,500 units of ink
+- a second mark within 24 hours (a rolling window, not a calendar
+  day) is refused, as is any path over 2,500 units of ink
 - only the hand that drew a mark is told it's theirs
 - no third-party request, every hand colour meets WCAG's 3:1 contrast on
   light and dark, and a keyboard alone can draw
 
-What's judged: whether the wall is worth looking at once a room has drawn, whether a day is the right pace, and whether "no login" survives
-people wanting their marks on a new phone. I judged the first two by
-seeding 300 marks into a scratch wall and by drawing with three hands at
-once, and at three crits with a pod on their own phones. The third I've
-only argued.
+What's judged: whether the wall is worth looking at once a room has
+drawn, whether a day is the right pace, and whether "no login" survives
+a new phone. Seeding 300 marks into a scratch wall showed your own stroke
+buried under later ones, so yours now paints last; drawing at the phone
+sizes a crit pod uses found a scroll swipe posting a mark. Pace has
+had three crits, not weeks; the third I've only argued.
 
-Each larger call, its rejected options and its costs, is recorded in [`decisions/`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/tree/main/decisions).
+Each larger call, with its rejected options and costs, is in [`decisions/`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/tree/main/decisions).
