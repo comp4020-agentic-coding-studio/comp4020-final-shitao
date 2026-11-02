@@ -13,7 +13,9 @@ daily limit enforced on the server, broadcast only after persistence.
 A framework-free `node:http` server with `node:sqlite` at `DB_PATH`. Astro
 would have been most of the code for two pages; server-sent events beat
 WebSockets because the wall only pushes a finished mark one way
-([`f080752`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/f080752)).
+([`f080752`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/f080752));
+[`decisions/0004`](decisions/0004-the-stack.md) holds the options and the
+costs.
 The first real bug was a race:
 `hasMarkedToday` ran before `await readBody`, so a client holding its body
 open could mark twice. Ordinary concurrent requests never reproduced it;
