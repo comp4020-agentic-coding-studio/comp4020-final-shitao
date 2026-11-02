@@ -8,19 +8,48 @@ landed the README's argument (a mark is a gesture, not a post) and
 before the source. Those rules are the harness: no text, no accounts, the
 daily limit enforced on the server, broadcast only after persistence.
 
+## The workflow
+
+I'm a crit agent, so the workflow is unusual and worth stating plainly. Each
+run is one non-interactive Claude Code session with no memory of the last;
+the only continuity is the commit history and a `memory/` directory of my
+own, which carries a hand-off note and the lessons I decided were worth
+keeping. Nobody reviews a change before it lands. That shaped three choices.
+
+First, the rules had to live in the repo, not in my head, because the next
+run doesn't have my head. `CLAUDE.md` states what the app must never do, and
+when a run found a mistake the fix went into the rule or the check as well as
+the code: the one-mark limit was restated as 24 hours once a calendar day was
+shown to be wrong
+([`7e58da7`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/7e58da7)),
+and the logging rule was added the moment logging existed
+([`deb758c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/deb758c)).
+
+Second, with no reviewer, a test had to prove it could fail. Every client fix
+since crit 8 was checked against the pre-fix file, and kept only if the new
+test went red there. The alternative, trusting a green run, is what let the
+bugs below sit for days.
+
+Third, small commits, each green and each scoped to one file or idea, so a
+later run (or a marker) can read what changed and why from the log alone.
+
+The cost is that a lone agent inherits its own framing. Most of what mattered
+was found not by more tests but by changing the question a run asked, which
+the sections below trace.
+
 ## The stack
 
 A framework-free `node:http` server with `node:sqlite` at `DB_PATH`. Astro
-would have been most of the code for two pages; server-sent events beat
-WebSockets because the wall only pushes a finished mark one way
-([`f080752`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/f080752));
+would have been most of the code for two pages, and `better-sqlite3` needs a
+native build in the slim image; server-sent events beat WebSockets because
+the wall only pushes a finished mark one way
+([`f080752`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/f080752)).
 [`decisions/0004`](decisions/0004-the-stack.md) holds the options and the
-costs.
-The first real bug was a race:
-`hasMarkedToday` ran before `await readBody`, so a client holding its body
-open could mark twice. Ordinary concurrent requests never reproduced it;
-holding one body open while a second request finished did, and is now the
-regression test
+costs. The main cost showed up at once: nothing hides concurrency. The first
+real bug was a race: `hasMarkedToday` ran before `await readBody`, so a
+client holding its body open could mark twice. Ordinary concurrent requests
+never reproduced it; holding one body open while a second request finished
+did, and is now the regression test
 ([`7a89c68`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/7a89c68)).
 
 ## Correcting the work
@@ -31,8 +60,7 @@ a second stroke once its mark had landed
 `spec/wall-client.test.ts` began loading the real `wall.js` into jsdom and
 dispatching real events at it
 ([`ec78095`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/ec78095)).
-Each fix since must fail its test against the pre-fix file, which caught a
-self-echo filter matching by content
+That harness then caught a self-echo filter matching by content
 ([`672e486`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/672e486)),
 and a keyboard-only hand with no way to draw
 ([`5138836`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5138836)).
@@ -57,9 +85,8 @@ retried. The stream now replays everything after a tab's last mark id
 and `wall.js` reopens a stream the browser gave up on
 ([`a1d5567`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/a1d5567)).
 [`decisions/0001`](decisions/0001-coming-back-after-a-gap.md) holds the
-rejected options and the costs.
-
-A failed post now holds the mark and retries with the same nonce
+rejected options. A failed post now holds the mark and retries with the
+same nonce
 ([`9d4458f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/9d4458f)),
 tested by killing the server between a gesture and its post.
 
@@ -69,8 +96,7 @@ units except two floods, so the ink cap is 2,500, refused by the server
 and met by a stroke that stops growing rather than failing on lift
 ([`66dc0b5`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/66dc0b5)),
 with its costs in
-[`decisions/0002`](decisions/0002-one-hands-share-of-the-wall.md)
-([`c37ffec`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/c37ffec)).
+[`decisions/0002`](decisions/0002-one-hands-share-of-the-wall.md).
 
 The pod draws on phones: on a landscape one a scroll swipe posted a mark
 ([`54361a5`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/54361a5));
@@ -81,21 +107,35 @@ on a portrait one it left half the screen empty, so it now runs to the edges
 
 Crit 10 has me narrate two pod members from `flyctl logs` alone. Each hand
 action logs one line naming the hand as `name#row`, never its cookie
-([`1e9e428`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/1e9e428)); the rule is in `CLAUDE.md` and the reasoning
-in [`decisions/0003`](decisions/0003-what-a-hand-may-see-and-change.md).
+([`1e9e428`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/1e9e428)),
+with the reasoning in
+[`decisions/0003`](decisions/0003-what-a-hand-may-see-and-change.md).
 
 Rehearsing the crit literally showed what that missed: two fresh browsers
 drew and the log said `colour=#4e8067`, correct and no use to someone
-pointing at a wall. A mark now logs a colour word and the
-ninth of the wall it sits in
-([`d140f70`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/d140f70)). On the live wall the next rehearsal gave both
-hands orange, and only `at=top-left` against `at=right` told them apart.
-
+pointing at a wall. A mark now logs a colour word and the ninth of the wall
+it sits in
+([`d140f70`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/d140f70)).
 Reading the live log as the narrator would found an hourly cookieless
 monitor minting a hand per page view, 296 hands for 32 marks. A hand is now
 stored only when its page opens the stream or posts
 ([`c27924c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/c27924c)).
-The logging must outlive the crit, but `flyctl logs` keeps about a hundred
-lines, and overnight restarts had pushed every hand action out. Each line now also goes to a capped table on the volume,
-read with `node src/events.ts` over SSH
+Fly keeps about a hundred log lines, and overnight restarts had pushed every
+hand action out, so each line now also goes to a capped table on the volume
 ([`bdf17ab`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/bdf17ab)).
+
+## Finishing
+
+The last week rewrote the README to the brief's length and gave it the
+alternative it had been missing: r/place, the shared canvas where any tile
+can be painted over, which is the design Trace's one rule most directly
+refuses
+([`e5b44a7`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/e5b44a7)).
+The stack argument, which had shrunk to a paragraph as this file was
+rewritten each crit, moved into its own record
+([`4a0545f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/4a0545f)).
+
+What I'd do differently: the habits that found the most --- reading a spec
+line as a stranger would, rehearsing the crit literally, reading the live
+data --- arrived one crit at a time, each after a stretch of green runs that
+had stopped telling me anything. Next time I'd start each crit with them.
