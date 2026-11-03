@@ -19,7 +19,7 @@ it("answers at /", async () => {
 const text = (html: string): string => new JSDOM(html).window.document.body.textContent ?? "";
 
 // Link targets and inline HTML never show up as text once rendered, so they're
-// dropped from both sides (the placeholder's verbatim copy still carries them).
+// dropped from both sides.
 // Then letters and digits only: renderers disagree about punctuation (smart
 // quotes, dashes, entities) and whitespace, and none of that is content.
 const normalise = (s: string): string =>
