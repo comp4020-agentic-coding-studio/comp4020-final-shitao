@@ -11,12 +11,16 @@ import { recordEvent } from "./db.ts";
 
 export type Fields = Record<string, string | number | boolean | undefined>;
 
+const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+
 // logfmt: `event key=value ...`, quoting any value with a space or quote in it.
+// A hand id is also its cookie, so any UUID a caller passes (an error message
+// quoting a header, say) is written as `uuid`.
 export function formatEvent(event: string, fields: Fields): string {
   const parts = [event];
   for (const [key, value] of Object.entries(fields)) {
     if (value === undefined) continue;
-    const s = String(value);
+    const s = String(value).replace(UUID, "uuid");
     parts.push(`${key}=${/[\s"=]/.test(s) || s === "" ? JSON.stringify(s) : s}`);
   }
   return parts.join(" ");

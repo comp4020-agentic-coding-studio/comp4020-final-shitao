@@ -43,3 +43,34 @@ it("gives every palette colour a distinct word a narrator can say aloud", () => 
   for (const word of words) expect(word).toMatch(/^[a-z]+$/);
   expect(new Set(words).size).toBe(words.length);
 });
+
+// CLAUDE.md: every hand action logs one line through `logEvent`, and a route
+// that changes or refuses something logs that too. Each branch of a
+// state-changing handler ends in `return;`, so every branch that answers the
+// request has to log before it does.
+it("logs every answer the mark route gives, through logEvent alone", () => {
+  const server = readFileSync("src/server.ts", "utf8");
+  const start = server.indexOf('req.method === "POST" && url.pathname === "/api/marks"');
+  const end = server.indexOf("res.writeHead(404", start);
+  expect(start, "POST /api/marks handler").toBeGreaterThan(-1);
+  const branches = server.slice(start, end).split("return;").filter((b) => b.includes("writeHead("));
+  expect(branches.length).toBeGreaterThanOrEqual(5);
+  for (const branch of branches) {
+    const status = branch.match(/writeHead\((\d+)/)?.[1];
+    expect(branch, `the ${status} answer`).toContain("logEvent(");
+  }
+
+  // stdout outside logEvent never reaches the volume (decisions/0003); the
+  // startup line and the `events.ts` reader are the only exceptions.
+  const bare = server.split("\n").filter((l) => /console\.log\(/.test(l) && !l.includes("Trace listening"));
+  expect(bare).toEqual([]);
+});
+
+// A hand's cookie is its id, a UUID, and its only credential. Whatever a
+// future call passes, formatEvent never writes one out.
+it("redacts a hand id or cookie wherever a log line would carry it", () => {
+  const id = "0b9e5c1e-4c1f-4e0b-9a51-3c2d8f7e6a10";
+  const line = formatEvent("error", { hand: id, message: `bad cookie hand=${id.toUpperCase()}; x=1` });
+  expect(line).not.toMatch(/0b9e5c1e/i);
+  expect(line).toContain("hand=uuid");
+});
