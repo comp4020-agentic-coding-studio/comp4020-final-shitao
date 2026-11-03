@@ -25,6 +25,14 @@ honest to that, not just the README:
   no embeds. Every `<script>` and `<link>` the server sends is same-origin.
   `spec/wall.test.ts` checks this; don't add an exception without updating
   both the test and README's "what's enforced" list.
+- **Anyone the wall lets in can draw with a keyboard alone.** Every
+  pointer gesture in `public/wall.js` has a key path through the same
+  state (`spec/wall-client.test.ts`); a new way to draw that only a
+  pointer can reach doesn't ship.
+- **Every hand colour meets WCAG's 3:1 contrast on both light and dark
+  backgrounds**, since the colour is all that tells a mark apart.
+  `spec/contrast.test.ts` reads `COLOURS` from `src/identity.ts`; change
+  the palette there, never around the test.
 - **Persistence lives at `DB_PATH` (default `/data/trace.db`, matching
   `fly.toml`'s volume).** Never write app state anywhere else, and never
   assume `/data` is empty --- a redeploy reuses the volume.
