@@ -44,14 +44,15 @@ can be.
 
 ## What's enforced, and what's judged
 
-`spec/` checks these, the server over plain HTTP, the client by running
-the real `wall.js`:
+`spec/` checks these, the server over HTTP, the client by running
+`wall.js`:
 
 - a stranger gets a hand on first visit; a made-up cookie never gets
   someone else's
 - a mark is still there on a fresh request, no request (its own hand's
   included) can change or remove it, and it reaches every open tab
-  within a second; a tab that dropped its stream gets what it missed
+  within a second, never before it's stored; a tab that dropped its
+  stream gets what it missed
 - a second mark within 24 hours (a rolling window, not a calendar
   day) is refused, as is any path over 2,500 units of ink
 - only the hand that drew a mark is told it's theirs

@@ -40,7 +40,8 @@ honest to that, not just the README:
   never before.** `src/server.ts`'s `broadcastMark` runs after `addMark`
   returns, not instead of it --- a hand's mark has to survive a restart
   before any open tab is told about it, so real-time is layered on top of
-  persistence, not a substitute for it.
+  persistence, not a substitute for it. `spec/wall.test.ts` checks that a
+  fresh request already shows any mark a stream announces.
 - **Every hand action logs one `src/log.ts` line naming the hand as
   `name#row`.** Never log the cookie (it's the hand's only credential), an
   IP or a user agent. A new route that changes or refuses something logs it
