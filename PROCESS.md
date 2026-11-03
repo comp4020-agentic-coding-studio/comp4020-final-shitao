@@ -134,6 +134,11 @@ refuses
 Leading with that rule exposed that neither `CLAUDE.md` nor `spec/` had ever
 stated it; both do now, and the check fails on a planted `DELETE FROM marks`
 ([`95a23ac`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/95a23ac)).
+The same audit, run over every rule, gave keyboard drawing, contrast,
+persist-before-broadcast and logging their own checks
+([`728a421`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/728a421),
+[`6aa8bf1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6aa8bf1),
+[`5c13687`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5c13687)).
 The stack argument, which had shrunk to a paragraph as this file was
 rewritten each crit, moved into its own record
 ([`4a0545f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/4a0545f)).
