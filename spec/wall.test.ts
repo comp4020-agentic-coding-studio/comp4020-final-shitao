@@ -283,6 +283,25 @@ it("broadcasts a new mark over /api/marks/stream within a second", async () => {
   stream.close();
 });
 
+it("only broadcasts a mark a fresh request can already see", async () => {
+  // CLAUDE.md: real-time sits on top of persistence. The moment a tab hears
+  // about a mark, the wall the server renders must already hold it.
+  const stream = await openStream();
+  const cookie = cookieFrom(await fetch(new URL("/", baseUrl)));
+  const path = `M2.${Date.now() % 100_000},40 L41,42`;
+
+  const [html] = await Promise.all([
+    stream.next().then(async (event) => {
+      expect(event.path).toBe(path);
+      return (await fetch(new URL("/", baseUrl))).text();
+    }),
+    postMark(cookie, path),
+  ]);
+
+  expect(html).toContain(path);
+  stream.close();
+});
+
 it("replays the marks a reconnecting tab missed, from its Last-Event-ID", async () => {
   // decisions/0001: a dropped stream (a locked phone, a redeploy) comes back
   // with exactly what landed while it was gone, in order, and nothing twice.
