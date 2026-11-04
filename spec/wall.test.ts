@@ -283,6 +283,24 @@ it("broadcasts a new mark over /api/marks/stream within a second", async () => {
   stream.close();
 });
 
+it("reaches every tab in a showcase-sized room within a second", async () => {
+  // The brief's showcase is a room full of people at once; README says
+  // "every open tab", not one.
+  const room = await Promise.all(Array.from({ length: 40 }, () => openStream()));
+  const cookie = cookieFrom(await fetch(new URL("/", baseUrl)));
+  const path = `M3.${Date.now() % 100_000},50 L51,52`;
+
+  const posted = performance.now();
+  const [events] = await Promise.all([
+    Promise.all(room.map((s) => s.next().then((e) => ({ ...e, after: performance.now() - posted })))),
+    postMark(cookie, path),
+  ]);
+
+  expect(events.every((e) => e.path === path)).toBe(true);
+  expect(Math.max(...events.map((e) => e.after))).toBeLessThan(1000);
+  for (const s of room) s.close();
+});
+
 it("only broadcasts a mark a fresh request can already see", async () => {
   // CLAUDE.md: real-time sits on top of persistence. The moment a tab hears
   // about a mark, the wall the server renders must already hold it.
