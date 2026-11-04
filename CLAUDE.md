@@ -10,7 +10,8 @@ honest to that, not just the README:
   quiet field addition.
 - **No accounts, ever.** Identity is the `hand` cookie `src/identity.ts`
   mints, nothing else. Don't add a login, an email field, or anything that
-  outlives the cookie.
+  outlives the cookie. `spec/wall.test.ts` pins the route list and checks
+  no page serves a form; a new route updates that test deliberately.
 - **A mark, once stored, is never replaced, edited or removed** --- not by
   its own hand, not by an admin route, not by a cleanup job. That is what
   separates the wall from r/place's paint-over canvas (README). No undo, no
@@ -33,9 +34,12 @@ honest to that, not just the README:
   backgrounds**, since the colour is all that tells a mark apart.
   `spec/contrast.test.ts` reads `COLOURS` from `src/identity.ts`; change
   the palette there, never around the test.
-- **Persistence lives at `DB_PATH` (default `/data/trace.db`, matching
-  `fly.toml`'s volume).** Never write app state anywhere else, and never
+- **Persistence lives at `DB_PATH`** (the `Dockerfile` sets
+  `/data/trace.db`, on `fly.toml`'s volume; `src/db.ts` falls back to
+  `./data/` for local runs). Never write app state anywhere else, and never
   assume `/data` is empty --- a redeploy reuses the volume.
+  `spec/wall.test.ts` checks the path sits on the mount and that only
+  `src/db.ts` opens storage.
 - **A mark broadcasts over `/api/marks/stream` the moment it's persisted,
   never before.** `src/server.ts`'s `broadcastMark` runs after `addMark`
   returns, not instead of it --- a hand's mark has to survive a restart
