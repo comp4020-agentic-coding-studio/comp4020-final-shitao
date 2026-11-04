@@ -10,7 +10,7 @@ can tell they're yours.
 ## What good means here
 
 Trace is good if a room full of strangers can make one drawing together
-without anyone being able to take it over, and if each of them can come
+without anyone being able to take it over, and if each can come
 back and find their own stroke still in it.
 
 Robin Sloan's
@@ -23,7 +23,7 @@ sitting still. So nothing here grows: no invites, no follows, and nobody
 can find out who drew which mark unless they tell you. Marks drawn while
 you're away fill in quietly, so it reads as a wall, not an activity feed.
 
-The alternative I argued against was Reddit's
+I argued against Reddit's
 [r/place](https://www.redditinc.com/blog/how-we-built-rplace/): one
 tile every five minutes, and any tile can be painted over. That made it a contest organised groups won
 ([Wikipedia](https://en.wikipedia.org/wiki/R/place) records streamers
@@ -51,7 +51,7 @@ can be.
   someone else's
 - a mark is still there on a fresh request, no request (its own hand's
   included) can change or remove it, and it reaches every open tab
-  within a second, never before it's stored; a tab that dropped its
+  (forty, in one check) within a second, never before it's stored; a tab that dropped its
   stream gets what it missed
 - a second mark within 24 hours (a rolling window, not a calendar
   day) is refused, as is any path over 2,500 units of ink
