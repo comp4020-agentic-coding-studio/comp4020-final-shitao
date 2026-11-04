@@ -467,6 +467,23 @@ it("lets a hand draw again when a tab comes back into view after its 24 hours", 
   expect(posted.length).toBe(2);
 });
 
+it("keeps drawing, on top, while another hand's mark lands mid-gesture", async () => {
+  // The showcase room: everyone draws at once, so marks arrive while a
+  // stroke is half-drawn. The gesture has to carry on and post whole, and
+  // the arrival goes under the stroke being drawn, not over it.
+  const { svg, posted, gesture, settle, emitMark } = buildWall({ canDraw: true });
+  gesture(1, 1, "pointerdown");
+  gesture(5, 5, "pointermove");
+  emitMark({ path: "M50,50 L60,60", colour: "#abcdef" });
+  gesture(9, 9, "pointermove");
+  expect(svg.lastElementChild?.getAttribute("d")).toBe("M1,1 L5,5 L9,9");
+  gesture(10, 10, "pointerup");
+  await settle();
+  expect(posted.map((p) => p.path)).toEqual(["M1,1 L5,5 L9,9"]);
+  expect(svg.firstElementChild?.getAttribute("stroke")).toBe("#abcdef");
+  expect(svg.lastElementChild?.classList.contains("mine")).toBe(true);
+});
+
 it("drops a gesture in progress when this hand's other tab posts first", async () => {
   // Otherwise a keyboard gesture is stuck: keydown refuses everything once
   // the hand can't draw, Escape included, so the half-drawn stroke stays.
