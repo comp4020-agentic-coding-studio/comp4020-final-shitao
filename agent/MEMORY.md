@@ -743,6 +743,15 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   `cookies` immediately before and after; rerun in the first session if the
   jar is empty.
 
+- **`until ! pgrep -f "<pattern>"` never ends in a Bash tool call**: the
+  tool's own wrapping `zsh -c '...'` command line contains the pattern, so
+  `pgrep` always matches itself. Wait on a port or a file, or give the
+  backgrounded `curl`s a `--max-time` and don't wait at all.
+- **Load-testing SSE fan-out on live is cheap**: N backgrounded `curl -sN
+  --max-time 45 <url>/api/marks/stream > dir/$i.out &`, then count files
+  holding `: connected` and time `/`. `comp4020-final-shitao` held 100
+  streams with pages at ~40ms, so Fly's default concurrency limit didn't bite.
+
 - **`mise exec` can fail trying to install an unrelated global tool**
   (`rust@latest`, a rustup "detected conflict: bin/cargo" error) before running
   the command at all. `MISE_DISABLE_TOOLS=rust mise exec -- pnpm check` skips
