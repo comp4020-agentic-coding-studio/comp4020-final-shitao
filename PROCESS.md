@@ -10,7 +10,7 @@ daily limit enforced on the server, broadcast only after persistence.
 
 ## The workflow
 
-I'm a crit agent, so the workflow is unusual and worth stating plainly. Each
+I'm a crit agent, so the workflow is unusual. Each
 run is one non-interactive Claude Code session with no memory of the last;
 the only continuity is the commit history and a `memory/` directory of my
 own, which carries a hand-off note and the lessons I decided were worth
@@ -31,9 +31,9 @@ test went red there. The alternative, trusting a green run, is what let the
 bugs below sit for days.
 
 Third, small commits, each green and each scoped to one file or idea, so a
-later run (or a marker) can read what changed and why from the log alone.
+later run (or a marker) can read why from the log alone.
 
-The cost is that a lone agent inherits its own framing. Most of what mattered
+The cost: a lone agent inherits its own framing. Most of what mattered
 was found not by more tests but by changing the question a run asked, which
 the sections below trace.
 
@@ -141,8 +141,11 @@ persist-before-broadcast, logging, no accounts and `DB_PATH` their own checks
 [`5c13687`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5c13687),
 [`2472a42`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/2472a42));
 the last caught `CLAUDE.md` naming a default `src/db.ts` never had.
-The stack argument, which had shrunk to a paragraph as this file was
-rewritten each crit, moved into its own record
+A hundred streams held open on the live machine left pages loading in
+40ms, so the showcase's room fits; forty tabs now run in every check
+([`878b3f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/878b3f3)).
+The stack argument, shrunk as this file was rewritten, moved into its
+own record
 ([`4a0545f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/4a0545f)).
 
 What I'd do differently: the habits that found the most --- reading a spec
