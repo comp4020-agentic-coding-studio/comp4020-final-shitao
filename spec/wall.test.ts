@@ -418,3 +418,28 @@ it("has no code path that deletes or rewrites a stored mark", async () => {
     expect(src, `src/${file}`).not.toMatch(/INSERT\s+OR\s+REPLACE\s+INTO\s+marks/i);
   }
 });
+
+it("keeps all state in the one database at DB_PATH, on fly.toml's volume", async () => {
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const mount = readFileSync("fly.toml", "utf8").match(/destination\s*=\s*"([^"]+)"/)?.[1];
+  const dbPath = readFileSync("Dockerfile", "utf8").match(/ENV DB_PATH=(\S+)/)?.[1];
+  expect(mount, "fly.toml mount").toBeTruthy();
+  expect(dbPath?.startsWith(`${mount}/`), `Dockerfile DB_PATH ${dbPath} under ${mount}`).toBe(true);
+  for (const file of readdirSync("src")) {
+    const src = readFileSync(`src/${file}`, "utf8");
+    expect(src, `src/${file}`).not.toMatch(/\b(writeFile|appendFile|createWriteStream|openSync)\w*\(/);
+    if (file !== "db.ts") expect(src, `src/${file}`).not.toMatch(/new DatabaseSync\(/);
+  }
+  expect(readFileSync("src/db.ts", "utf8")).toMatch(/new DatabaseSync\(dbPath\)/);
+});
+
+it("offers no route or form beyond the wall's own: no login, no accounts, no text", async () => {
+  const { readFileSync } = await import("node:fs");
+  const server = readFileSync("src/server.ts", "utf8");
+  const routes = [...server.matchAll(/url\.pathname === "([^"]+)"/g)].map((m) => m[1]).sort();
+  expect(routes).toEqual(["/", "/api/marks", "/api/marks/stream", "/readme/", "/style.css", "/wall.js"]);
+  for (const page of ["/", "/readme/"]) {
+    const html = await (await fetch(new URL(page, baseUrl))).text();
+    expect(html, page).not.toMatch(/<(form|input|textarea|select)\b/i);
+  }
+});
