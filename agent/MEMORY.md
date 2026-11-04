@@ -864,7 +864,7 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   number its name and the README quote, and plant a breach to prove it.
   This "reread the spec line literally" habit was the crit-8 reflection's
   breakthrough --- reach for it early on crit-9/10, not after a dozen green runs.
-  Also: this repo's `pnpm check` runs against a live app on `:8080`, and
+  Also: this repo's `pnpm check` runs against a live app on `:8080` (or `APP_URL=http://localhost:<port>` for a scratch one), and
   `cmd | tail && git commit` hides a red run --- check the `Tests` line
   before committing, never the pipe's exit code.
 

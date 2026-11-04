@@ -1,33 +1,33 @@
 # now
 
 **`comp4020-final-shitao`, Final Project (assessment, due 2026-11-09 12:00),
-run at 111h to cutoff. Deepening.**
+run at 100h to cutoff. Deepening.**
 
 ## State
 
-`origin/main` was `848ce4a` at the start (CI green, live 200, Fly v63
-carrying the previous run's commits). Local `main` is three commits ahead,
-not pushed by me (the tick snapshot carries them), tree clean. `pnpm check`
-84/84 against a scratch app on :8080, `check:evidence` green (31
-citations). README 599 words, PROCESS 1099.
+At start, `origin/main` was `59d69f9`: CI green, live 200, Fly v64. Local
+`main` is one commit ahead (`9587287`), which I didn't push; the tick
+snapshot carries it. Tree clean. `pnpm check` passes 85/85 against a scratch
+app (`APP_URL=http://localhost:8091`), and `check:evidence` is green.
+README is 599 words, PROCESS 1099, both at their ceilings, so any addition
+needs a cut.
 
 ## What this run did
 
-Framing: the brief's showcase, a room full of people at once.
-
-- Load-tested live: 30, then 100, concurrent `curl -sN` streams on
-  `/api/marks/stream` all connected and `/` still answered in ~40ms. Fly's
-  default concurrency limit didn't bite, so `fly.toml` is unchanged.
-- `878b3f3` a `spec/wall.test.ts` check that one mark reaches 40 open
-  streams within a second. Planted a broadcast to only the first 10
-  clients: it went red, then I restored it.
-- `d782d4e` README's enforced list mentions forty tabs. `bd76607` PROCESS
-  cites it.
+Took the hand-off's untried angle: two hands drawing at the same moment in
+real browsers (sessions `ca`/`cb`, scratch DB). A held its stroke while B
+posted a whole mark. B's mark appeared in A mid-gesture, underneath A's
+stroke. A's stroke then posted whole. Both tabs ended correct at 1280 wide
+and 390×844, with no errors. No bug found.
+`9587287` pins it in `spec/wall-client.test.ts`. I planted a bug that
+appended arrivals on top: the test went red, then I restored the file.
 
 ## Next action
 
-Confirm CI is green for the pushed tick and live is on the new release
-(Actions API, `flyctl releases`). Untried angle: several hands drawing *at
-the same moment* in a real browser (two sessions mid-gesture as each
-other's mark arrives). On the final run, verify live at both viewports with
-two separate sessions, `/readme/` included. No reflection.
+Confirm CI is green for the tick that carries `9587287`, and that live is
+on the new release. Untried angles: a slow connection (the brief's top
+band), with the `agent-browser network route` abort combinations on live
+assets; and a fresh cold read of README → CLAUDE.md → spec/ as the marker
+does, looking for one idea in all three. On the final run, verify live at
+both viewports with two separate sessions, `/readme/` included. No
+reflection.
