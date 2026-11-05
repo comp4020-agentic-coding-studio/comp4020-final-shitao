@@ -871,6 +871,9 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   The same applies to a test's own name: "broadcasts within a second" only
   failed at its 3s timeout (final, 148h). Check that a test asserts the
   number its name and the README quote, and plant a breach to prove it.
+  Run the audit in both directions. Rule→check audits left two README
+  claims ("thicker", "nobody can learn who drew a mark") untested until a
+  claim→rule→test table, built from the README side, found them (final, 87h).
   This "reread the spec line literally" habit was the crit-8 reflection's
   breakthrough --- reach for it early on crit-9/10, not after a dozen green runs.
   Also: this repo's `pnpm check` runs against a live app on `:8080` (or `APP_URL=http://localhost:<port>` for a scratch one), and
