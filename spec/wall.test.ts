@@ -1,6 +1,8 @@
 import { JSDOM } from "jsdom";
 import { expect, inject, it } from "vitest";
 import net from "node:net";
+import { readFileSync } from "node:fs";
+import { nameFor } from "../src/identity.ts";
 
 // Trace's own promises, from README.md's "what's enforced" list: a
 // first-time visitor gets a hand, a mark they draw shows up and survives a
@@ -471,4 +473,37 @@ it("offers no route or form beyond the wall's own: no login, no accounts, no tex
     const html = await (await fetch(new URL(page, baseUrl))).text();
     expect(html, page).not.toMatch(/<(form|input|textarea|select)\b/i);
   }
+});
+
+// README: "nobody can find out who drew which mark unless they tell you."
+// A browser can only learn what the server sends it, so neither another
+// hand's page nor its stream may carry the drawing hand's id or name.
+it("never sends another hand the drawing hand's id or name", async () => {
+  const drawer = cookieFrom(await fetch(new URL("/", baseUrl)));
+  const viewer = cookieFrom(await fetch(new URL("/", baseUrl)));
+  const handId = drawer.slice("hand=".length);
+  const watching = await openStream("", { Cookie: viewer });
+  const [event] = await Promise.all([
+    watching.next(),
+    postMark(drawer, `M1.${Date.now() % 100_000},60 L61,62`),
+  ]);
+  watching.close();
+  for (const key of Object.keys(event)) {
+    expect(["id", "eventId", "path", "colour", "mine", "nonce"]).toContain(key);
+  }
+
+  const page = await (await fetch(new URL("/", baseUrl), { headers: { Cookie: viewer } })).text();
+  for (const leak of [handId, nameFor(handId)]) {
+    expect(page).not.toContain(leak);
+    expect(JSON.stringify(event)).not.toContain(leak);
+  }
+});
+
+// README: "Your own marks draw thicker." The `mine` class is checked above;
+// this checks the class actually makes the stroke thicker.
+it("draws a hand's own marks thicker than everyone else's", () => {
+  const css = readFileSync(new URL("../public/style.css", import.meta.url), "utf8");
+  const width = (selector: string) =>
+    Number(css.match(new RegExp(`${selector.replace(".", "\\.")} \\{[^}]*stroke-width: (\\d+)`))?.[1]);
+  expect(width("#wall path.mine")).toBeGreaterThan(width("#wall path"));
 });

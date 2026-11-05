@@ -12,6 +12,10 @@ honest to that, not just the README:
   mints, nothing else. Don't add a login, an email field, or anything that
   outlives the cookie. `spec/wall.test.ts` pins the route list and checks
   no page serves a form; a new route updates that test deliberately.
+- **No browser learns who drew a mark.** A page or stream event carries a
+  mark's path, colour and whether it's the viewer's own (`mine`), never a
+  hand id or name; only the server log names hands. A new field on a mark
+  event is added to the allow-list in `spec/wall.test.ts` deliberately.
 - **A mark, once stored, is never replaced, edited or removed** --- not by
   its own hand, not by an admin route, not by a cleanup job. That is what
   separates the wall from r/place's paint-over canvas (README). No undo, no
