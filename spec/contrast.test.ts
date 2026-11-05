@@ -1,16 +1,12 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-// A hand's colour is the only thing that distinguishes its marks, and a
-// mark is drawn straight onto the page background --- no fill the wall
-// controls --- so under `color-scheme: light dark` (style.css) that
-// background can be white or near-black depending on the visitor's own
-// system preference, not just whichever one a screenshot happens to use.
-// WCAG 1.4.11's 3:1 non-text contrast threshold applies to a graphical
-// object like a drawn stroke the same way it applies to a UI component
-// boundary. Reads the palette straight out of identity.ts rather than a
-// hardcoded copy, so a future palette edit is caught here instead of
-// silently reintroducing a near-invisible colour.
+// A hand's colour is the only thing that distinguishes its marks, and
+// under `color-scheme: light dark` a mark is drawn on style.css's light or
+// dark ground, whichever the visitor's system prefers. WCAG 1.4.11's 3:1
+// non-text contrast applies to a drawn stroke. Reads the palette out of
+// identity.ts and the ground out of style.css, so an edit to either is
+// caught here.
 const source = readFileSync(new URL("../src/identity.ts", import.meta.url), "utf8");
 const match = source.match(/const COLOURS = \[([\s\S]*?)\];/);
 if (!match) throw new Error("couldn't find COLOURS in identity.ts");
@@ -31,8 +27,15 @@ function contrast(hex: string, otherLuminance: number): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-const WHITE_L = luminance("#ffffff");
-const BLACK_L = luminance("#000000");
+// The ground is style.css's own, not an assumed white and black: a
+// browser's dark Canvas is lighter than black and fails colours that pass
+// against it.
+const css = readFileSync(new URL("../public/style.css", import.meta.url), "utf8");
+const ground = css.match(/--ground:\s*light-dark\((#[0-9a-fA-F]{6}),\s*(#[0-9a-fA-F]{6})\)/);
+if (!ground) throw new Error("couldn't find --ground in style.css");
+const [, LIGHT, DARK] = ground;
+const WHITE_L = luminance(LIGHT);
+const BLACK_L = luminance(DARK);
 
 describe("hand palette vs WCAG 1.4.11's 3:1 non-text contrast", () => {
   it("the palette isn't empty", () => {
@@ -40,11 +43,11 @@ describe("hand palette vs WCAG 1.4.11's 3:1 non-text contrast", () => {
   });
 
   for (const hex of COLOURS) {
-    it(`${hex} reads against a white background`, () => {
+    it(`${hex} reads against the light ground`, () => {
       expect(contrast(hex, WHITE_L)).toBeGreaterThanOrEqual(3);
     });
 
-    it(`${hex} reads against a black background`, () => {
+    it(`${hex} reads against the dark ground`, () => {
       expect(contrast(hex, BLACK_L)).toBeGreaterThanOrEqual(3);
     });
   }

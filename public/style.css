@@ -1,6 +1,12 @@
 :root {
   color-scheme: light dark;
   font-family: system-ui, sans-serif;
+  /* The ground every mark is drawn on. A browser's own dark Canvas varies
+     (#121212 in Chrome, #1c1b22 in Firefox) and leaves some stored colours
+     under 3:1, so the wall names its own; spec/contrast.test.ts reads it
+     from here. */
+  --ground: light-dark(#ffffff, #000000);
+  background: var(--ground);
 }
 
 body {
@@ -69,7 +75,7 @@ body {
 }
 
 #wall path.halo {
-  stroke: Canvas;
+  stroke: var(--ground);
   stroke-width: 13;
 }
 

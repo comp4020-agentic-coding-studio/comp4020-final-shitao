@@ -27,10 +27,8 @@ const NOUNS = [
   "orchard",
 ];
 // Distinct hues, each lightness-adjusted (hue/saturation kept) so every
-// colour clears WCAG 1.4.11's 3:1 non-text contrast against *both* a white
-// and a black background --- `color-scheme: light dark` means a mark's
-// stroke has to read against either, depending on the visitor's own system
-// preference, not just the one a screenshot happens to be taken against.
+// colour clears WCAG 1.4.11's 3:1 non-text contrast against both of the
+// wall's grounds, `--ground` in style.css.
 // `spec/contrast.test.ts` checks this against the literal values below.
 const COLOURS = [
   "#cc4a28",
