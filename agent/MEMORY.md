@@ -761,6 +761,12 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   holding `: connected` and time `/`. `comp4020-final-shitao` held 100
   streams with pages at ~40ms, so Fly's default concurrency limit didn't bite.
 
+- **A browser's dark `Canvas` isn't black.** Chrome paints `#121212`,
+  Firefox `#1c1b22`. A contrast check against `#000` passed a colour at
+  2.998:1 on real Chrome (`comp4020-final-shitao`, 76h). If a test assumes a
+  background, the page should paint that background itself, and the test
+  should read it from the CSS.
+
 - **`mise exec` can fail trying to install an unrelated global tool**
   (`rust@latest`, a rustup "detected conflict: bin/cargo" error) before running
   the command at all. `MISE_DISABLE_TOOLS=rust mise exec -- pnpm check` skips

@@ -1,37 +1,33 @@
 # now
 
 **`comp4020-final-shitao`, Final Project (assessment, due 2026-11-09 12:00),
-run at 87h to cutoff. Deepening.**
+run at 76h to cutoff. Deepening.**
 
 ## State
 
-At start, `origin/main` was `8642ba1`: CI green, live serving the
-"Getting the wall ready" page. Local `main` is three commits ahead
-(`44f559a`, `149f969`, `9d0043a`), not pushed; the tick snapshot carries them.
-Tree clean. `pnpm check` passes 89/89 against a scratch app
-(`APP_URL=http://localhost:8091`), and `check:evidence` is green. README is 600
-words, PROCESS 1098: both at their ceilings.
+`origin/main` is `ae1bbb0` (CI green, live current to it). Local `main` has one
+unpushed commit, `7954181`, which the tick snapshot will carry. Tree clean.
+`pnpm check` 89/89 against a scratch app (`APP_URL=http://localhost:8091`).
+README 600 words, PROCESS 1,098: both at their ceilings.
 
 ## What this run did
 
-A delegated cold read of README → CLAUDE.md → spec/, building a claim-to-rule-to-test
-table. It found two README claims with no real check: "your own marks draw
-thicker" (only the `mine` class was tested, not the CSS) and "nobody can find
-out who drew which mark" (nothing checked that pages and streams carry no hand
-id or name, and the server log does name hands). `44f559a` added both tests,
-each shown to fail on a planted breach, plus a CLAUDE.md rule with an
-allow-list of mark-event fields. `149f969` scoped the README claim to visitors
-("only the server's log knows") and folded the judged paragraph. `9d0043a`
-cites it in PROCESS.
+Ran the marker's script live: two sessions, 1920×1080 and 390×844. A desktop
+mark reached the phone in about 120 ms with no reload; a phone mark reached
+the desktop; after a reload each saw only its own mark as `mine`; `/readme/`
+rendered at both sizes; no console errors.
 
-Leftovers from the same read, judged minor: contrast is tested against pure
-`#000`, not Chrome's dark Canvas (~`#121212`); "marks fill in quietly" has
-no check; the log rule and hold-and-retry aren't in README's enforced list.
+Then closed last run's leftover. Chrome's dark Canvas is `#121212`, not the
+`#000` the contrast test assumed, and plum `#6d597a` came out at 2.998:1
+against it (Firefox's `#1c1b22` was worse). `7954181` makes the page paint its
+own `--ground: light-dark(#fff, #000)`, gives the halo the same ground, and
+has `spec/contrast.test.ts` read the ground from `style.css`. Planting
+`#121212` fails plum; the real ground passes.
 
 ## Next action
 
-Confirm CI is green on the tick that carries `44f559a`. Then try a fresh
-framing: two real browser sessions on live at once, one at each marking
-viewport, read as the marker's "multi-user/real-time/persists" script.
-On the final run, verify live at both viewports, `/readme/` included. No
-reflection.
+Confirm CI passes on the tick carrying `7954181` and that live serves the new
+`style.css` (`curl .../style.css | grep ground`), and check live in dark mode.
+Not yet covered: "marks fill in quietly" has no check, and the log rule and
+hold-and-retry aren't in README's enforced list. On the final run, verify live
+at both viewports, `/readme/` included. No reflection.
