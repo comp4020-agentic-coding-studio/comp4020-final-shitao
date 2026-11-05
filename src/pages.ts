@@ -53,13 +53,15 @@ export function wallPage(
   const since = marks.reduce((max, m) => Math.max(max, m.id), 0);
   const handColour = hand.colour;
 
+  // The wall is served as a picture either way. Only wall.js can take a
+  // mark, so it makes the wall drawable (focusable, touch-taking, inviting)
+  // once it runs: on a slow link, or if the script never arrives, nobody is
+  // told to draw on a wall that can't take it, and a phone can still scroll.
   const prompt = alreadyMarked
     ? `<p id="status" role="status">Your mark is already on the wall. You can add another ${untilPhrase(msUntilNextMark)}.</p>`
-    : `<p id="status" role="status">Draw one mark with a pointer, or focus the wall and press Enter: arrow keys draw, Enter again finishes.</p>`;
+    : `<p id="status" role="status">Getting the wall ready for your mark…</p>`;
 
-  const svgAttrs = alreadyMarked
-    ? `role="img" aria-label="The shared drawing, one mark per hand"`
-    : `tabindex="0" role="application" aria-label="The shared drawing, one mark per hand. Press Enter or Space to start your mark, arrow keys to draw it, Enter or Space to finish, Escape to cancel."`;
+  const svgAttrs = `role="img" aria-label="The shared drawing, one mark per hand"`;
 
   return layout(
     "Trace",

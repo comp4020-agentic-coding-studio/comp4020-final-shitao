@@ -201,6 +201,14 @@ it("tells a hand which stroke is theirs the moment its first mark lands", async 
   expect(status.textContent).toContain("the thicker stroke");
 });
 
+it("makes the wall drawable and invites a mark once it runs", () => {
+  // pages.ts serves the wall as a picture; only the running script offers it.
+  const { svg, status } = buildWall({ canDraw: true });
+  expect(svg.getAttribute("tabindex")).toBe("0");
+  expect(svg.getAttribute("role")).toBe("application");
+  expect(status.textContent).toContain("Draw one mark");
+});
+
 it("refuses to draw when canDraw starts false", async () => {
   const { svg, posted, stroke, keyboardStroke, settle } = buildWall({ canDraw: false });
   stroke(1, 9);

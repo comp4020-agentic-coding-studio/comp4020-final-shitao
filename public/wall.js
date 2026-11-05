@@ -118,7 +118,8 @@
   };
 
   // Whether this hand may draw, with the wall's focusability and label to
-  // match (pages.ts renders the same two states on load). The server still
+  // match. pages.ts always renders the undrawable state, so a wall is only
+  // offered once this script is here to take the mark. The server still
   // refuses a mark too early; this only decides what the tab offers.
   const setDrawable = (on) => {
     canDraw = on;
@@ -129,8 +130,6 @@
         "aria-label",
         "The shared drawing, one mark per hand. Press Enter or Space to start your mark, arrow keys to draw it, Enter or Space to finish, Escape to cancel.",
       );
-      status.textContent =
-        "You can add another mark. Draw it with a pointer, or focus the wall and press Enter: arrow keys draw, Enter again finishes.";
     } else {
       svg.removeAttribute("tabindex");
       svg.setAttribute("role", "img");
@@ -158,8 +157,16 @@
     if (left > 0) return waitForNextMark(left);
     reopensAt = Infinity;
     setDrawable(true);
+    status.textContent =
+      "You can add another mark. Draw it with a pointer, or focus the wall and press Enter: arrow keys draw, Enter again finishes.";
   };
-  if (!canDraw) waitForNextMark(Number(script.dataset.nextMarkIn) || DAY_MS);
+  if (canDraw) {
+    setDrawable(true);
+    status.textContent =
+      "Draw one mark with a pointer, or focus the wall and press Enter: arrow keys draw, Enter again finishes.";
+  } else {
+    waitForNextMark(Number(script.dataset.nextMarkIn) || DAY_MS);
+  }
 
   // The one pointer drawing. A second finger on a phone is ignored rather
   // than starting a new gesture over the first, which would orphan the

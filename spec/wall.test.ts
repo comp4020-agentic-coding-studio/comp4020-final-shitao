@@ -394,6 +394,17 @@ it("announces what happens to a mark to assistive technology", async () => {
   expect(status?.getAttribute("role")).toBe("status");
 });
 
+it("offers no drawable wall until wall.js is there to take the mark", async () => {
+  // On a slow link, or if the script never arrives, the served page is all a
+  // hand has: it mustn't invite a mark, take focus, or take a phone's touch.
+  const html = await (await fetch(new URL("/", baseUrl))).text();
+  const doc = new JSDOM(html).window.document;
+  const wall = doc.getElementById("wall");
+  expect(wall?.hasAttribute("tabindex")).toBe(false);
+  expect(wall?.getAttribute("role")).toBe("img");
+  expect(doc.getElementById("status")?.textContent).not.toMatch(/draw/i);
+});
+
 it("lets a marker who starts at /readme/ get onto the wall", async () => {
   const res = await fetch(new URL("/readme/", baseUrl));
   const dom = new JSDOM(await res.text());

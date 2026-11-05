@@ -29,7 +29,9 @@ honest to that, not just the README:
 - **Anyone the wall lets in can draw with a keyboard alone.** Every
   pointer gesture in `public/wall.js` has a key path through the same
   state (`spec/wall-client.test.ts`); a new way to draw that only a
-  pointer can reach doesn't ship.
+  pointer can reach doesn't ship. The served page offers no drawable
+  wall: `wall.js` makes it focusable and inviting once it runs, so a slow
+  link or a missing script never asks for a mark it can't take.
 - **Every hand colour meets WCAG's 3:1 contrast on both light and dark
   backgrounds**, since the colour is all that tells a mark apart.
   `spec/contrast.test.ts` reads `COLOURS` from `src/identity.ts`; change
