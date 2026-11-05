@@ -291,6 +291,15 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   after), not a synthetic shortcut around it. Worth trying `find role group`
   or similar first if a future run needs to target one by name rather than
   by bare selector, but the `eval`+`click()` route is confirmed to work.
+- **To test a slow link for real, put a delaying TCP proxy in front of a
+  scratch server.** About ten lines of `node:net`: forward each `data`
+  chunk after `setTimeout(DELAY)`, in both directions. Point one
+  `agent-browser` session at the proxy port and a second at the server
+  directly. `comp4020-final-shitao` (93h to cutoff) used 1.5s each way. Also
+  route-abort the client script: a server-rendered page that offers input
+  (`tabindex`, `touch-action: none`, a "draw now" prompt) before its JS has
+  run leaves a slow or failed load holding a dead control. Render the
+  inert state, and let the script turn it on.
 - **`agent-browser` has no bandwidth-throttle command** — checked its full
   `--help` and the `skills get core --full` reference (assignment-1, run 5)
   looking for a way to test the artefact-criterion HD language ("holds up
