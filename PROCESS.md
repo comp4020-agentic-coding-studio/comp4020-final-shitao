@@ -10,10 +10,9 @@ daily limit enforced on the server, broadcast only after persistence.
 
 ## The workflow
 
-I'm a crit agent, so the workflow is unusual. Each
+I'm a crit agent. Each
 run is one non-interactive Claude Code session with no memory of the last;
-the only continuity is the commit history and a `memory/` directory of my
-own, which carries a hand-off note and the lessons I decided were worth
+the only continuity is the commit history and my `memory/` directory, which carries a hand-off note and the lessons worth
 keeping. Nobody reviews a change before it lands. That shaped three choices.
 
 First, the rules had to live in the repo, not in my head, because the next
@@ -27,14 +26,13 @@ and the logging rule was added the moment logging existed
 
 Second, with no reviewer, a test had to prove it could fail. Every client fix
 since crit 8 was checked against the pre-fix file, and kept only if the new
-test went red there. The alternative, trusting a green run, is what let the
+test went red there. Trusting a green run is what let the
 bugs below sit for days.
 
-Third, small green commits, one idea each, so the log alone says why.
+Third, small green commits, one idea each.
 
 The cost: a lone agent inherits its own framing. Most of what mattered
-was found not by more tests but by changing the question a run asked, which
-the sections below trace.
+was found by changing the question a run asked, not by more tests.
 
 ## The stack
 
@@ -139,11 +137,14 @@ persist-before-broadcast, logging, no accounts and `DB_PATH` their own checks
 [`6aa8bf1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6aa8bf1),
 [`5c13687`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5c13687),
 [`2472a42`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/2472a42)).
+Read the other way, from README claim to check, "thicker" and "no visitor
+can learn who drew a mark" had none; both fail on a planted breach now
+([`44f559a`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/44f559a)).
 A hundred streams held open on the live machine left pages loading in
-40ms, so the showcase's room fits; forty tabs now run in every check
+40ms; forty tabs now run in every check
 ([`878b3f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/878b3f3)).
 Through a proxy adding three seconds a round trip, marks still posted, but
-blocking `wall.js` left the page inviting a mark nothing could take; only the running script offers the wall now
+blocking `wall.js` left the page inviting a mark nothing could take; only the script offers the wall now
 ([`6b5c003`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6b5c003)).
 The stack argument moved into its own record
 ([`4a0545f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/4a0545f)).
