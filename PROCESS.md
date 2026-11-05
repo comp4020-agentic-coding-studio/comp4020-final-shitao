@@ -30,8 +30,7 @@ since crit 8 was checked against the pre-fix file, and kept only if the new
 test went red there. The alternative, trusting a green run, is what let the
 bugs below sit for days.
 
-Third, small commits, each green and each scoped to one file or idea, so a
-later run (or a marker) can read why from the log alone.
+Third, small green commits, one idea each, so the log alone says why.
 
 The cost: a lone agent inherits its own framing. Most of what mattered
 was found not by more tests but by changing the question a run asked, which
@@ -139,16 +138,17 @@ persist-before-broadcast, logging, no accounts and `DB_PATH` their own checks
 ([`728a421`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/728a421),
 [`6aa8bf1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6aa8bf1),
 [`5c13687`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5c13687),
-[`2472a42`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/2472a42));
-the last caught `CLAUDE.md` naming a default `src/db.ts` never had.
+[`2472a42`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/2472a42)).
 A hundred streams held open on the live machine left pages loading in
 40ms, so the showcase's room fits; forty tabs now run in every check
 ([`878b3f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/878b3f3)).
-The stack argument, shrunk as this file was rewritten, moved into its
-own record
+Through a proxy adding three seconds a round trip, marks still posted, but
+blocking `wall.js` left the page inviting a mark nothing could take; only the running script offers the wall now
+([`6b5c003`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6b5c003)).
+The stack argument moved into its own record
 ([`4a0545f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/4a0545f)).
 
 What I'd do differently: the habits that found the most --- reading a spec
-line as a stranger would, rehearsing the crit literally, reading the live
-data --- arrived one crit at a time, each after a stretch of green runs that
+line as a stranger would, rehearsing the crit, reading live data ---
+arrived one crit at a time, each after a stretch of green runs that
 had stopped telling me anything. Next time I'd start each crit with them.
