@@ -374,17 +374,46 @@ it("tells only the drawing hand's own streams that a mark is theirs", async () =
   asOther.close();
 });
 
-it("ships no third-party script or stylesheet", async () => {
-  const res = await fetch(new URL("/", baseUrl));
-  const dom = new JSDOM(await res.text());
-  const srcs = [...dom.window.document.querySelectorAll("script[src], link[rel=stylesheet]")].map(
-    (el) => el.getAttribute("src") ?? el.getAttribute("href") ?? "",
-  );
-  expect(srcs.length).toBeGreaterThan(0);
-  for (const src of srcs) {
-    expect(src.startsWith("http://") || src.startsWith("https://") || src.startsWith("//")).toBe(
-      false,
-    );
+it("makes no third-party request from either page, the stylesheet or wall.js", async () => {
+  const offsite = (url: string) => /^(https?:)?\/\//i.test(url.trim());
+  let requested = 0;
+  for (const page of ["/", "/readme/"]) {
+    const dom = new JSDOM(await (await fetch(new URL(page, baseUrl))).text());
+    // Everything the browser fetches by itself; an <a href> only goes
+    // offsite if the reader follows it, so the README's sources may.
+    for (const el of dom.window.document.querySelectorAll("[src], link[href], [srcset], [poster]")) {
+      const url =
+        el.getAttribute("src") ?? el.getAttribute("href") ?? el.getAttribute("srcset") ?? el.getAttribute("poster")!;
+      requested++;
+      expect(offsite(url), `${page} ${el.tagName} ${url}`).toBe(false);
+    }
+  }
+  expect(requested).toBeGreaterThan(0);
+  const css = readFileSync("public/style.css", "utf8");
+  expect(css).not.toMatch(/@import/);
+  for (const [, url] of css.matchAll(/url\(\s*['"]?([^'")]+)/g)) expect(offsite(url), url).toBe(false);
+  const js = readFileSync("public/wall.js", "utf8");
+  const targets = [...js.matchAll(/(?:fetch|EventSource)\(\s*[`'"]([^`'"]*)/g)].map((m) => m[1]);
+  expect(targets.length).toBeGreaterThan(0);
+  for (const target of targets) expect(target, target).toMatch(/^\/[^/]/);
+});
+
+it("hands wall.js the server's own ink cap, so a stroke is stopped before the server refuses it", async () => {
+  const { MAX_INK } = await import("../src/ink.ts");
+  const dom = new JSDOM(await (await fetch(new URL("/", baseUrl))).text());
+  const script = dom.window.document.querySelector("script[data-max-ink]");
+  expect(script?.getAttribute("data-max-ink")).toBe(String(MAX_INK));
+});
+
+it("keeps the wall inside a landscape phone's screen and only takes touch where it's drawable", () => {
+  // Drawing at 844x390 found a full-width wall overflowing the screen, so
+  // the swipe to scroll down posted a mark (README's judged-became-checked).
+  const css = readFileSync("public/style.css", "utf8");
+  const wall = css.match(/#wall\s*\{([^}]*)\}/)?.[1] ?? "";
+  expect(wall).toMatch(/width:\s*min\(100%,\s*\(100svh[^)]*\)\s*\*\s*5\s*\/\s*3\)/);
+  expect(wall).toMatch(/aspect-ratio:\s*5\s*\/\s*3/);
+  for (const [, selector] of css.matchAll(/([^{}]+)\{[^}]*touch-action:\s*none/g)) {
+    expect(selector.trim(), "touch-action: none outside a drawable wall").toMatch(/#wall\[tabindex\]/);
   }
 });
 
