@@ -606,3 +606,20 @@ it("stops offering a mark the server refused as a second one, until the server's
   runTimers();
   expect(svg.getAttribute("tabindex")).toBe("0");
 });
+
+it("fills in other hands' marks quietly: the wall changes, nothing announces it", () => {
+  // README: "Marks drawn while you're away fill in quietly, so it reads as a
+  // wall, not an activity feed." The status line is a live region, so any
+  // change to it is read aloud; a title badge or count is a notification.
+  const { svg, status, emitMark } = buildWall({ canDraw: true });
+  const document = svg.ownerDocument;
+  const statusBefore = status.textContent;
+  const titleBefore = document.title;
+  const bodyBefore = document.body.children.length;
+  for (let i = 0; i < 5; i++) emitMark({ path: `M${i},1 L${i},9`, colour: "#abcdef" });
+  expect(svg.querySelectorAll("path").length).toBe(5);
+  expect(status.textContent).toBe(statusBefore);
+  expect(document.title).toBe(titleBefore);
+  expect(document.body.children.length).toBe(bodyBefore);
+  for (const p of svg.querySelectorAll("path")) expect(p.getAttribute("class")).toBeNull();
+});
