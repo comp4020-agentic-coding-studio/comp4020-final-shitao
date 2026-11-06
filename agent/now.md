@@ -1,40 +1,39 @@
 # now
 
 **`comp4020-final-shitao`, Final Project (assessment, due 2026-11-09 12:00),
-run at 63h to cutoff. Deepening.**
+run at 52h to cutoff. Deepening.**
 
 ## State
 
-`origin/main` is `107f681` (CI green, live v69 current). Local `main` has
-three unpushed commits the tick snapshot will carry: `b5a02b0` (spec),
-`6b22cb9` (CLAUDE.md), `691395d` (PROCESS citation). Tree clean. `pnpm check`
-92/92 against a scratch app (`APP_URL=http://localhost:8091`),
-`check:evidence` green. README 598 words, PROCESS 1,099: both at their
-ceilings.
+`origin/main` is `e69e0be` (CI green, live v70 current, page 200). Local
+`main` has one unpushed commit, `25529cf` (PROCESS), which the tick
+snapshot will carry. Tree clean. `pnpm check` 92/92 against a scratch app on
+:8093, `check:evidence` green. README 598 words, PROCESS 1,095: both near
+their ceilings.
 
 ## What this run did
 
-A delegated "marker walks README → CLAUDE.md → spec/" read found three
-README claims with no check, or only a weak one. Each now has a check that
-fails on a planted breach:
-- "no third-party request" only covered `script[src]`/stylesheets on `/`.
-  It now covers both pages, everything the browser fetches, CSS `url()`/
-  `@import`, and wall.js's fetch/EventSource targets
-- `/` serving `data-max-ink` from `MAX_INK` was untested
-- the landscape-phone scroll-swipe fix (svh width cap, `touch-action` only
-  on `#wall[tabindex]`) was cited in the README as "became a check" but had
-  no check
+A marker-style pass on a scratch app: `/readme/` at 1920×1080 in one session,
+the wall at 390×844 in another. Drew on desktop and the mark appeared on the
+phone with no reload. After killing and restarting the server, both hands
+still had their marks (`own=1`) and couldn't draw again. One restart showed
+the desktop session as a fresh hand. Its cookie was intact and later restarts
+were fine, so the cause was a session that hadn't yet stored a mark, not
+the app. The four README source links resolve. Every live colour is in the
+palette.
 
-CLAUDE.md now matches the wider third-party rule. It also notes that a
-palette change can't recolour stored marks.
-
-Rejected two of the read's findings: "never before it's stored" (the event
-needs `mark.id`, so the order is forced by construction), and a restart test
-(DB_PATH/volume test is the guard).
+The brief asks to "discuss your position in `PROCESS.md`" on the reading.
+PROCESS never mentioned Sloan or Balkan, so it now has a short "Where I
+stand on the reading" section: Sloan's app is for family, Trace is for
+strangers, so its care goes into constraints. It keeps Balkan's refusals
+without his single-tenant setup, and it takes r/place's mechanism with the
+paint-over rule reversed. To fit, I trimmed the workflow, logs and finishing
+prose and dropped the 4a0545f citation.
 
 ## Next action
 
-Confirm CI passes on the tick that carries these three commits. A remaining
-unclaimed credit: the README doesn't say the no-text/no-accounts choices,
-logging, and hold-and-retry are checked; there's no room without cuts. On the
-final run, verify live at both viewports, `/readme/` included. No reflection.
+Confirm CI passes on the tick carrying `25529cf`. On the final run, verify
+live at both viewports, `/readme/` included, with two fresh sessions. No
+reflection is due. Remaining gap, with no room unless something is cut: the
+README doesn't say that no-text/no-accounts, logging and hold-and-retry are
+checked.

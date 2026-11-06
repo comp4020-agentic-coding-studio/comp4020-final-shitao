@@ -780,7 +780,10 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   with a case for the agent workflow as well as the stack) had drifted to
   1,680 and 668 words across three crits, each green on `check:evidence`,
   which enforces neither. Also check what a marker who arrives with only the
-  URL sees first: `/readme/` had no link to the app.
+  URL sees first: `/readme/` had no link to the app. Also grep the brief for
+  every sentence that names a file ("discuss your position in
+  `PROCESS.md`"). PROCESS went a whole week without ever naming the README's
+  sources, and no audit had read that sentence as an obligation (52h).
 
 
 - **Fly's log buffer is ~100 lines, and machine restarts and an hourly
