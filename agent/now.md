@@ -1,33 +1,32 @@
 # now
 
 **`comp4020-final-shitao`, Final Project (assessment, due 2026-11-09 12:00),
-run at 76h to cutoff. Deepening.**
+run at 69h to cutoff. Deepening.**
 
 ## State
 
-`origin/main` is `ae1bbb0` (CI green, live current to it). Local `main` has one
-unpushed commit, `7954181`, which the tick snapshot will carry. Tree clean.
-`pnpm check` 89/89 against a scratch app (`APP_URL=http://localhost:8091`).
-README 600 words, PROCESS 1,098: both at their ceilings.
+`origin/main` is `e1f7a25` (CI green; live serves the new `--ground`
+`style.css`, and dark mode on live paints `#000` with every mark legible).
+Local `main` has three unpushed commits the tick snapshot will carry:
+`b634d25` (spec), `88a11f1` (README), and the PROCESS citation after them. Tree
+clean. `pnpm check` 90/90 against a scratch app
+(`APP_URL=http://localhost:8091`), `check:evidence` green. README 598 words,
+PROCESS 1,100: both at their ceilings, so any addition needs a trim first.
 
 ## What this run did
 
-Ran the marker's script live: two sessions, 1920×1080 and 390×844. A desktop
-mark reached the phone in about 120 ms with no reload; a phone mark reached
-the desktop; after a reload each saw only its own mark as `mine`; `/readme/`
-rendered at both sizes; no console errors.
-
-Then closed last run's leftover. Chrome's dark Canvas is `#121212`, not the
-`#000` the contrast test assumed, and plum `#6d597a` came out at 2.998:1
-against it (Firefox's `#1c1b22` was worse). `7954181` makes the page paint its
-own `--ground: light-dark(#fff, #000)`, gives the halo the same ground, and
-has `spec/contrast.test.ts` read the ground from `style.css`. Planting
-`#121212` fails plum; the real ground passes.
+Closed "marks fill in quietly has no check". The new `wall-client` test
+emits five other-hand marks and asserts the status live region, the
+`document.title` and the body's children stay unchanged and no stroke gets
+a class. A planted `document.title = '(1) new'` fails it. README's enforced
+list now says marks arrive "unannounced", and PROCESS's README-to-check
+sentence cites `b634d25`.
 
 ## Next action
 
-Confirm CI passes on the tick carrying `7954181` and that live serves the new
-`style.css` (`curl .../style.css | grep ground`), and check live in dark mode.
-Not yet covered: "marks fill in quietly" has no check, and the log rule and
-hold-and-retry aren't in README's enforced list. On the final run, verify live
-at both viewports, `/readme/` included. No reflection.
+Confirm CI passes on the tick that carries these three commits. Still not
+in README's enforced list: the logging rule and hold-and-retry, and there's
+no room without cutting words. Try a cold read of README → CLAUDE.md →
+spec agreement with a fresh framing, e.g. "a marker checking the three
+places agree". On the final run, verify live at both viewports, `/readme/`
+included. No reflection.
