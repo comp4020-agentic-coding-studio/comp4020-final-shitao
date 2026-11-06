@@ -8,16 +8,25 @@ landed the README's argument (a mark is a gesture, not a post) and
 before the source. Those rules are the harness: no text, no accounts, the
 daily limit enforced on the server, broadcast only after persistence.
 
+## Where I stand on the reading
+
+The README borrows from two small-web writers and departs from both. Robin
+Sloan's home-cooked app serves four people who are family, so it can lean on
+trust. A room of strangers can't, so Trace puts the care into constraints:
+one mark, one day, a fixed amount of ink. Aral Balkan's Small Web is single
+tenant, one server per person. Trace keeps his refusals (no tracking, no
+growth) and drops that architecture, because a wall one person draws on is
+not a shared drawing. From r/place I took a rate-limited shared canvas and
+reversed its paint-over rule.
+
 ## The workflow
 
-I'm a crit agent. Each
-run is one non-interactive Claude Code session with no memory of the last;
-the only continuity is the commit history and my `memory/` directory, which carries a hand-off note and the lessons worth
-keeping. Nobody reviews a change before it lands. That shaped three choices.
+I'm a crit agent. Each run is one non-interactive Claude Code session with
+no memory of the last; the only continuity is the commits and my `memory/`
+hand-off. Nobody reviews a change before it lands. That shaped three choices.
 
-First, the rules had to live in the repo, not in my head, because the next
-run doesn't have my head. `CLAUDE.md` states what the app must never do, and
-when a run found a mistake the fix went into the rule or the check as well as
+First, the rules had to live in the repo. `CLAUDE.md` states what the app
+must never do, and a mistake's fix went into the rule or the check as well as
 the code: the one-mark limit was restated as 24 hours once a calendar day was
 shown to be wrong
 ([`7e58da7`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/7e58da7)),
@@ -26,13 +35,12 @@ and the logging rule was added the moment logging existed
 
 Second, with no reviewer, a test had to prove it could fail. Every client fix
 since crit 8 was checked against the pre-fix file, and kept only if the new
-test went red there. Trusting a green run is what let the
-bugs below sit for days.
+test went red there.
 
 Third, small green commits, one idea each.
 
-The cost: a lone agent inherits its own framing. Most of what mattered
-was found by changing the question a run asked, not by more tests.
+The cost: a lone agent inherits its own framing. What mattered was found
+by changing the question a run asked.
 
 ## The stack
 
@@ -108,25 +116,22 @@ action logs one line naming the hand as `name#row`, never its cookie
 with the reasoning in
 [`decisions/0003`](decisions/0003-what-a-hand-may-see-and-change.md).
 
-Rehearsing the crit literally showed what that missed: two fresh browsers
-drew and the log said `colour=#4e8067`, correct and no use to someone
-pointing at a wall. A mark now logs a colour word and the ninth of the wall
+Rehearsing the crit with two fresh browsers showed `colour=#4e8067` is no
+use to someone pointing at a wall. A mark now logs a colour word and the ninth of the wall
 it sits in
 ([`d140f70`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/d140f70)).
 Reading the live log as the narrator would found an hourly cookieless
 monitor minting a hand per page view, 296 hands for 32 marks. A hand is now
 stored only when its page opens the stream or posts
 ([`c27924c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/c27924c)).
-Fly keeps about a hundred log lines, and overnight restarts had pushed every
-hand action out, so each line now also goes to a capped table on the volume
+Fly keeps about a hundred log lines, so each line also goes to a capped
+table on the volume
 ([`bdf17ab`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/bdf17ab)).
 
 ## Finishing
 
-The last week rewrote the README to the brief's length and gave it the
-alternative it had been missing: r/place, the shared canvas where any tile
-can be painted over, which is the design Trace's one rule most directly
-refuses
+The last week rewrote the README to the brief's length, arguing against
+r/place
 ([`e5b44a7`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/e5b44a7)).
 Leading with that rule exposed that neither `CLAUDE.md` nor `spec/` had ever
 stated it; both do now, and the check fails on a planted `DELETE FROM marks`
@@ -143,14 +148,11 @@ only covered scripts on `/`; each fails a planted breach now
 ([`44f559a`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/44f559a),
 [`b634d25`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/b634d25),
 [`b5a02b0`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/b5a02b0)).
-A hundred live streams left pages loading in
-40ms; forty tabs now run in every check
+A hundred live streams left pages at 40ms; forty tabs run in every check
 ([`878b3f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/878b3f3)).
-Through a proxy adding three seconds a round trip, marks still posted, but
-blocking `wall.js` left the page inviting a mark nothing could take; now only the script offers it
+Through a three-second proxy marks still posted, but a blocked `wall.js`
+left the page inviting a mark nothing could take; now only the script offers it
 ([`6b5c003`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6b5c003)).
-The stack argument has its own record
-([`4a0545f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/4a0545f)).
 
 What I'd do differently: the habits that found the most --- reading a spec
 line as a stranger would, rehearsing the crit, reading live data ---
