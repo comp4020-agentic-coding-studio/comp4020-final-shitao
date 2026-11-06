@@ -21,8 +21,8 @@ for growth, that "stays put." Aral Balkan's
 gave me what to refuse: the Big Web's habit of watching everyone and never
 sitting still. So nothing here grows: no invites, no follows, and no visitor
 can learn who drew which mark unless told (only the server's log
-knows). Marks drawn while
-you're away fill in quietly, so it reads as a wall, not an activity feed.
+knows).
+Marks drawn while you're away fill in quietly, so it reads as a wall, not an activity feed.
 
 I argued against Reddit's
 [r/place](https://www.redditinc.com/blog/how-we-built-rplace/): one
@@ -52,8 +52,8 @@ can be.
   someone else's
 - a mark is still there on a fresh request, no request (its own hand's
   included) can change or remove it, and it reaches every open tab
-  (forty, in one check) within a second, never before it's stored; a tab that drops its
-  stream gets what it missed
+  (forty, in one check) within a second, unannounced, never before it's
+  stored; a tab that drops its stream gets what it missed
 - a second mark within 24 hours (a rolling window, not a calendar
   day) is refused, as is any path over 2,500 units of ink
 - only the hand that drew a mark is told it's theirs, and draws it
@@ -61,10 +61,10 @@ can be.
 - no third-party request, every hand colour meets WCAG's 3:1 contrast on
   light and dark, and a keyboard alone can draw
 
-What's judged: whether the wall is worth looking at once a room has
-drawn, whether a day is the right pace (tried for three crits, not
-weeks), and whether "no login" survives a new phone. Two judgements
+What's judged: whether the wall is worth a look once a room has
+drawn, whether a day is the right pace (tried over three crits), and
+whether "no login" survives a new phone. Two judgements
 became checks: 300 seeded marks buried your own stroke, so yours paints
 last, and drawing at phone sizes found a scroll swipe posting a mark.
 
-Each larger call, with its rejected options and costs, is in [`decisions/`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/tree/main/decisions).
+Each larger call, with rejected options and costs, is in [`decisions/`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/tree/main/decisions).
