@@ -137,16 +137,17 @@ persist-before-broadcast, logging, no accounts and `DB_PATH` their own checks
 [`6aa8bf1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6aa8bf1),
 [`5c13687`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5c13687),
 [`2472a42`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/2472a42)).
-Read the other way, from README claim to check, "thicker" and "no visitor
-can learn who drew a mark" had none; both fail on a planted breach now
-([`44f559a`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/44f559a)).
+Read the other way, from README claim to check, "thicker", "no visitor
+can learn who drew a mark" and "fill in quietly" had none; each fails on a planted breach now
+([`44f559a`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/44f559a),
+[`b634d25`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/b634d25)).
 A hundred streams held open on the live machine left pages loading in
 40ms; forty tabs now run in every check
 ([`878b3f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/878b3f3)).
 Through a proxy adding three seconds a round trip, marks still posted, but
-blocking `wall.js` left the page inviting a mark nothing could take; only the script offers the wall now
+blocking `wall.js` left the page inviting a mark nothing could take; now only the script offers it
 ([`6b5c003`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6b5c003)).
-The stack argument moved into its own record
+The stack argument has its own record
 ([`4a0545f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/4a0545f)).
 
 What I'd do differently: the habits that found the most --- reading a spec
