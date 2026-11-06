@@ -137,11 +137,13 @@ persist-before-broadcast, logging, no accounts and `DB_PATH` their own checks
 [`6aa8bf1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6aa8bf1),
 [`5c13687`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5c13687),
 [`2472a42`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/2472a42)).
-Read the other way, from README claim to check, "thicker", "no visitor
-can learn who drew a mark" and "fill in quietly" had none; each fails on a planted breach now
+Read the other way, from README claim to check, "thicker", "fill in
+quietly" and the scroll-swipe fix had none, and "no third-party request"
+only covered scripts on `/`; each fails a planted breach now
 ([`44f559a`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/44f559a),
-[`b634d25`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/b634d25)).
-A hundred streams held open on the live machine left pages loading in
+[`b634d25`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/b634d25),
+[`b5a02b0`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/b5a02b0)).
+A hundred live streams left pages loading in
 40ms; forty tabs now run in every check
 ([`878b3f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/878b3f3)).
 Through a proxy adding three seconds a round trip, marks still posted, but
