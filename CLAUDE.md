@@ -27,7 +27,8 @@ honest to that, not just the README:
   24 hours of its last mark (a rolling window, never a calendar day) even if
   the client is a bare `curl`.
 - **No third-party requests.** No analytics, no CDN-hosted fonts or scripts,
-  no embeds. Every `<script>` and `<link>` the server sends is same-origin.
+  no embeds. Everything a page, `style.css` or `wall.js` makes the browser
+  fetch is same-origin; only a link the reader follows may leave.
   `spec/wall.test.ts` checks this; don't add an exception without updating
   both the test and README's "what's enforced" list.
 - **Anyone the wall lets in can draw with a keyboard alone.** Every
@@ -39,7 +40,9 @@ honest to that, not just the README:
 - **Every hand colour meets WCAG's 3:1 contrast on both light and dark
   backgrounds**, since the colour is all that tells a mark apart.
   `spec/contrast.test.ts` reads `COLOURS` from `src/identity.ts`; change
-  the palette there, never around the test.
+  the palette there, never around the test. A stored mark keeps the colour
+  it was drawn in and is never rewritten, so a palette change can't rescue
+  a failing colour already on the wall: check the live wall's colours too.
 - **Persistence lives at `DB_PATH`** (the `Dockerfile` sets
   `/data/trace.db`, on `fly.toml`'s volume; `src/db.ts` falls back to
   `./data/` for local runs). Never write app state anywhere else, and never
