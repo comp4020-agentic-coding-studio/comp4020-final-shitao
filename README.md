@@ -36,8 +36,9 @@ wants to add to.
 
 ## What I chose not to build
 
-No text, captions or typed names: a mark is a gesture, not a post, and a
-gesture can't be unkind the way a sentence can. No accounts: a hand is a
+No text, captions or typed names: a mark is a gesture, not a post.
+Hands do write ("hello" is on the wall), but the ink holds a word,
+not a thread. No accounts: a hand is a
 browser, so a new phone is a new hand, and I'd rather pay that than ask
 for an email. No undo: one gesture a day would become as many drafts as you
 like. No moderation queue: the constraint sits upstream, in what a mark
@@ -62,9 +63,9 @@ can be.
   light and dark, and a keyboard alone can draw
 
 What's judged: whether the wall is worth a look once a room has
-drawn, whether a day is the right pace (tried over three crits), and
-whether "no login" survives a new phone. Two judgements
+drawn, whether a day is the right pace, and whether "no login" survives a
+new phone. Two judgements
 became checks: 300 seeded marks buried your own stroke, so yours paints
 last, and drawing at phone sizes found a scroll swipe posting a mark.
 
-Each larger call, with rejected options and costs, is in [`decisions/`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/tree/main/decisions).
+Each larger call, with what it costs, is in [`decisions/`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/tree/main/decisions).
