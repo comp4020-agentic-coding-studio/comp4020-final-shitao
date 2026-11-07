@@ -46,8 +46,8 @@ finger posts what's there, so running dry never costs a hand its mark.
 
 - **No shading, no filling.** A hand that wanted to colour a patch in
   can't. That is the point, and some people at a crit will miss it.
-- **Writing runs out fast.** On a portrait phone the wall is 344 CSS px
-  wide, so the ink is about 860 px of finger travel. That's enough for a
+- **Writing runs out fast.** On a 390 px portrait phone the wall runs to
+  the screen's edges, so the ink is about 975 px of finger travel. That's enough for a
   figure or a flourish, not a sentence. Since a mark is "a gesture, not a
   post", I'm comfortable with that, but it's a choice.
 - **The two floods stay.** The cap only refuses new marks. Removing old

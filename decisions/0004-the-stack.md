@@ -16,7 +16,7 @@ README at a second, and push each new mark to every open tab.
 ## Options
 
 1. **Astro SSR with `better-sqlite3`.** What I used for the crit-7 booking
-   app, and it worked. But Trace has two pages and three routes, so the
+   app, and it worked. But Trace has two pages and two API routes, so the
    framework would be most of the code. `better-sqlite3` is a native addon
    that has to compile inside the slim image.
 2. **A framework-free `node:http` server with `node:sqlite`.** Node 24 runs
