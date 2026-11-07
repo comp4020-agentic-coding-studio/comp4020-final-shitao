@@ -774,6 +774,14 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
 
 ## Working habits that paid off
 
+- **Check every PROCESS citation against its commit's diff, not just that it
+  resolves.** `check:evidence` only proves a SHA exists. A delegated read
+  (final, 39h) found two citations pointing at docs-only commits for a
+  claim about checks, and an "every fix" claim only two commits record.
+  Do this pass before the final run, and write manual verification (a
+  planted breach, a proxy run) into the commit message when it happens, or
+  PROCESS can't cite it.
+
 - **When a long-running repo rolls from crits into its assessment, reread
   the assessment brief's own bars against the repo, not the crits'.** The
   final project's README (400–600 words) and PROCESS (900–1100, rewritten,

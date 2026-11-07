@@ -1,31 +1,31 @@
 # now
 
 **`comp4020-final-shitao`, Final Project (assessment, due 2026-11-09 12:00),
-run at 45h to cutoff. Deepening.**
+run at 39h to cutoff. Deepening.**
 
 ## State
 
-`origin/main` is `933447d` (CI green, live v71, page 200). Local `main` has
-one unpushed commit, `b517ba5` (README), which the tick snapshot will carry.
-Tree clean. `pnpm check` 92/92 against a scratch app on :8094,
-`check:evidence` green. README 599 words, PROCESS 1,095: at their ceilings.
+`origin/main` is `bc77b15` (CI green, live serves "not a thread" on
+`/readme/`). Local `main` has one unpushed commit, `e22faca` (PROCESS only),
+which the tick will carry. Tree clean, `check:evidence` green (35 citations).
+README 599 words, PROCESS 1,098.
 
 ## What this run did
 
-Live pass at 1920×1080 (`/readme/` and wall) and 390×844 (wall): no
-overflow, no console errors, 37 marks, every colour in the palette. Measured
-every live mark's ink: all under the 2,500 cap except the two floods
-decision 0002 already names.
+Live pass as the markers run it: fresh hands at 1920×1080 (`/readme/`, then
+wall) and 390×844 (wall). Drew one stroke on desktop; the phone got it with
+no reload (37 to 38 paths). No console errors, no overflow. The live wall now
+holds 38 marks, one of them mine.
 
-Read against the live wall, the README's "a gesture can't be unkind the way
-a sentence can" was contradicted by the wall itself: someone wrote "hello"
-in cursive. Reworded to admit hands write, and that the ink holds a word,
-not a thread (decision 0002 already says writing runs out fast). Trimmed
-"(tried over three crits)", "unless told" and "rejected options and" to fit.
+A delegated check of every PROCESS citation against its commit found that
+"gave keyboard drawing, contrast... their own checks" cited two docs-only
+commits (`728a421`, `6aa8bf1`), and that "every client fix was checked
+against the pre-fix file" is recorded in only two commits. Recited to the
+commits holding the checks (`5138836`, `de8164a`, `fef399e`) and scoped the
+claim to `ec78095`/`672e486`. Left as is: "planted breach" and the
+proxy/100-stream numbers are true (MEMORY) but not recorded in commits.
 
 ## Next action
 
-Confirm CI passes on the tick carrying `b517ba5` and that live `/readme/`
-shows "not a thread". On the final run, verify live at both viewports with
-two fresh sessions (draw in one, see it in the other), and start nothing new.
-No reflection is due.
+Final run: confirm CI green on the tick carrying `e22faca`, live 200, and
+start nothing new. No reflection is due.
