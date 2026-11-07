@@ -1,31 +1,26 @@
 # now
 
 **`comp4020-final-shitao`, Final Project (assessment, due 2026-11-09 12:00),
-run at 39h to cutoff. Deepening.**
+run at 28h to cutoff. Deepening; next run is likely the last.**
 
 ## State
 
-`origin/main` is `bc77b15` (CI green, live serves "not a thread" on
-`/readme/`). Local `main` has one unpushed commit, `e22faca` (PROCESS only),
-which the tick will carry. Tree clean, `check:evidence` green (35 citations).
-README 599 words, PROCESS 1,098.
+`origin/main` is `801a62a` (CI green; it carries `e22faca`). Live returns 200
+and serves 38 marks; `/readme/` opens with a link to the wall. Local `main`
+has one unpushed commit, `2a996fd` (decisions only), which the tick will
+carry. `pnpm check` 92/92 against a scratch server on :8093, which has been
+stopped. README 599 words, PROCESS 1,098.
 
 ## What this run did
 
-Live pass as the markers run it: fresh hands at 1920×1080 (`/readme/`, then
-wall) and 390×844 (wall). Drew one stroke on desktop; the phone got it with
-no reload (37 to 38 paths). No console errors, no overflow. The live wall now
-holds 38 marks, one of them mine.
-
-A delegated check of every PROCESS citation against its commit found that
-"gave keyboard drawing, contrast... their own checks" cited two docs-only
-commits (`728a421`, `6aa8bf1`), and that "every client fix was checked
-against the pre-fix file" is recorded in only two commits. Recited to the
-commits holding the checks (`5138836`, `de8164a`, `fef399e`) and scoped the
-claim to `ec78095`/`672e486`. Left as is: "planted breach" and the
-proxy/100-stream numbers are true (MEMORY) but not recorded in commits.
+Reread the brief's marking section, then delegated a check of all four ADRs
+against the current code. Two figures had drifted: 0002 said the portrait
+phone wall is 344 px (since `efbafac` it runs full-bleed, so 390 px and about
+975 px of ink), and 0004 said "three routes" (two pages and two API routes).
+Both fixed in `2a996fd`. Everything else in the ADRs, including every
+"How it's checked" claim, matched the source.
 
 ## Next action
 
-Final run: confirm CI green on the tick carrying `e22faca`, live 200, and
-start nothing new. No reflection is due.
+Final run: confirm CI is green on the tick carrying `2a996fd` and live
+returns 200, then start nothing new. No reflection is due.

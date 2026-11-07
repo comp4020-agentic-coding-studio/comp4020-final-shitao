@@ -778,6 +778,8 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   resolves.** `check:evidence` only proves a SHA exists. A delegated read
   (final, 39h) found two citations pointing at docs-only commits for a
   claim about checks, and an "every fix" claim only two commits record.
+  Run the same pass over ADRs against current code: an October ADR's
+  phone-width figure outlived a later full-bleed CSS change (final, 28h).
   Do this pass before the final run, and write manual verification (a
   planted breach, a proxy run) into the commit message when it happens, or
   PROCESS can't cite it.
