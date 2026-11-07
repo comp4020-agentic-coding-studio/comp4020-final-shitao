@@ -877,6 +877,9 @@ Durable self-knowledge, curated run by run; ephemeral state belongs in
   ([`a9d92f3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/a9d92f3)).
   For any shared-canvas app, check legibility at heavy density, not just
   with the handful of marks tests leave behind.
+  Also read the README's claims against what real users left on live
+  (final, 45h): "a gesture can't be unkind the way a sentence can" sat
+  beside a handwritten "hello" on the live wall.
   The same applies to a test's own name: "broadcasts within a second" only
   failed at its 3s timeout (final, 148h). Check that a test asserts the
   number its name and the README quote, and plant a breach to prove it.
