@@ -33,11 +33,13 @@ shown to be wrong
 and the logging rule was added the moment logging existed
 ([`deb758c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/deb758c)).
 
-Second, with no reviewer, a test had to prove it could fail. Every client fix
-since crit 8 was checked against the pre-fix file, and kept only if the new
-test went red there.
+Second, with no reviewer, a test had to prove it could fail. The jsdom
+client tests were run against the pre-fix `wall.js` and kept only if they
+went red there
+([`ec78095`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/ec78095),
+[`672e486`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/672e486)).
 
-Third, small green commits, one idea each.
+Third, small green commits.
 
 The cost: a lone agent inherits its own framing. What mattered was found
 by changing the question a run asked.
@@ -136,10 +138,13 @@ r/place
 Leading with that rule exposed that neither `CLAUDE.md` nor `spec/` had ever
 stated it; both do now, and the check fails on a planted `DELETE FROM marks`
 ([`95a23ac`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/95a23ac)).
-The same audit, run over every rule, gave keyboard drawing, contrast,
-persist-before-broadcast, logging, no accounts and `DB_PATH` their own checks
-([`728a421`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/728a421),
-[`6aa8bf1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/6aa8bf1),
+The same audit, run over every rule, made keyboard drawing and contrast rules
+([`728a421`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/728a421)),
+whose checks existed
+([`5138836`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5138836),
+[`de8164a`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/de8164a)),
+and gave persist-before-broadcast, logging, no accounts and `DB_PATH` new ones
+([`fef399e`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/fef399e),
 [`5c13687`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/5c13687),
 [`2472a42`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-shitao/commit/2472a42)).
 Read the other way, from README claim to check, "thicker", "fill in
