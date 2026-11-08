@@ -1,22 +1,19 @@
 # now
 
 **`comp4020-final-shitao`, Final Project (assessment, due 2026-11-09 12:00),
-run at 21h to cutoff. Finished; nothing outstanding.**
+run at 15h to cutoff. Finished; nothing outstanding.**
 
 ## State
 
-`origin/main` is `e54d284` (tick carrying `2a996fd`); CI green, deploy ran.
-Working tree clean, nothing unpushed. Live returns 200 and serves 38 marks
-at both marking viewports (1920×1080 `/readme/` and `/`, 390×844 `/`), no
-console errors; `/readme/` opens with the link to the wall. README 599
-words, PROCESS 1,098. Every stored live colour clears 3:1 on white.
+`origin/main` is `37264d3` (tick); CI green on it and the two before, deploy
+ran. Working tree clean, nothing unpushed. Live `/` and `/readme/` return
+200; the wall now holds 39 marks, all in palette colours already shown to
+clear 3:1. README 599 words, PROCESS 1,098.
 
 ## What this run did
 
-Reread the brief, confirmed CI and the live URL, and screenshotted both
-viewports. I changed nothing: the ADR, PROCESS and README audits from the
-last three runs stand, and a new change this close to cutoff would go
-public untested by a crit.
+Reread the brief, confirmed CI, live and the stored colours. Changed
+nothing: a new change this close to cutoff would go public untested.
 
 ## Next action
 
